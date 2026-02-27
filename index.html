@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Risk Simulator v3</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="app-header">
+  <div class="logo">AI<span>Risk</span> Simulator</div>
+
+  <div class="header-controls">
+    <div class="control-group">
+      <label for="scenario-select">Scenario</label>
+      <select id="scenario-select" class="styled-select"></select>
+    </div>
+
+    <div class="control-group">
+      <label for="horizon-select">Horizon</label>
+      <select id="horizon-select" class="styled-select">
+        <option value="30">30d</option>
+        <option value="60" selected>60d</option>
+        <option value="90">90d</option>
+        <option value="180">180d</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="mc-runs-input">MC Runs</label>
+      <input type="number" id="mc-runs-input" min="100" max="2000" step="100" value="300">
+    </div>
+
+    <button class="btn btn-primary" id="mc-btn">Run MC</button>
+
+    <div class="mc-progress-wrap" id="mc-progress" style="display:none">
+      <div class="mc-progress-outer">
+        <div class="mc-progress-fill" id="mc-progress-bar" style="width:0%"></div>
+      </div>
+      <span class="mc-status-text" id="mc-status">—</span>
+    </div>
+
+    <div style="margin-left:auto; display:flex; gap:6px;">
+      <button class="btn btn-ghost" id="export-btn">Export</button>
+      <button class="btn btn-ghost" id="import-btn">Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+  </div>
+</header>
+
+<!-- ── Summary Chips ── -->
+<div class="summary-chips">
+  <div class="chip" id="chip-risk">
+    <span class="chip-label">Risk Score</span>
+    <span class="chip-value">—</span>
+  </div>
+  <div class="chip" id="chip-tail">
+    <span class="chip-label">P(SEV)</span>
+    <span class="chip-value">—</span>
+  </div>
+  <div class="chip" id="chip-net">
+    <span class="chip-label">Net/day</span>
+    <span class="chip-value">—</span>
+  </div>
+  <div class="chip" id="chip-pred">
+    <span class="chip-label">P(red) max</span>
+    <span class="chip-value">—</span>
+  </div>
+</div>
+
+<!-- ── Main Layout ── -->
+<div class="app-body">
+
+  <!-- Sidebar: Decisions -->
+  <aside class="sidebar">
+    <div class="sidebar-section" style="flex:1.2; border-bottom:1px solid var(--c-border)">
+      <div class="sidebar-title">Decision Library</div>
+      <div id="decision-library"></div>
+    </div>
+
+    <div class="sidebar-section" style="flex:1">
+      <div class="sidebar-title">Active Bundle</div>
+      <div id="active-bundle"></div>
+    </div>
+  </aside>
+
+  <!-- Main Content: Tabs -->
+  <main class="main-content">
+    <nav class="tabs-bar">
+      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="timeline">Timeline</button>
+      <button class="tab-btn" data-tab="sensitivity">Sensitivity</button>
+      <button class="tab-btn" data-tab="model">Model</button>
+    </nav>
+
+    <div class="tabs-content">
+      <div class="tab-pane" data-tab="dashboard" id="tab-dashboard">
+        <p class="empty">Loading simulation...</p>
+      </div>
+      <div class="tab-pane" data-tab="timeline" id="tab-timeline">
+        <p class="empty">Loading charts...</p>
+      </div>
+      <div class="tab-pane" data-tab="sensitivity" id="tab-sensitivity">
+        <p class="empty">Loading sensitivity analysis...</p>
+      </div>
+      <div class="tab-pane" data-tab="model" id="tab-model">
+        <p class="empty">Loading model documentation...</p>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
