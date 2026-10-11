@@ -81,15 +81,36 @@
     </div>
 
     <div class="sidebar-section" style="flex:1">
-      <div class="sidebar-title">Active Bundle</div>
+      <div class="sidebar-title bundle-title">
+        <span>Bundle</span>
+        <span class="slot-switch" role="group" aria-label="Which bundle the sidebar edits">
+          <button class="slot-btn slot-a" data-slot="A" aria-pressed="true">A</button>
+          <button class="slot-btn slot-b" data-slot="B" aria-pressed="false">B</button>
+        </span>
+      </div>
       <div id="active-bundle"></div>
     </div>
   </aside>
 
   <!-- Main Content: Tabs -->
   <main class="main-content">
+    <section class="intro" id="intro" hidden aria-labelledby="intro-title">
+      <div class="intro-body">
+        <h2 id="intro-title">Decide how to keep an AI product safe without killing growth</h2>
+        <ol class="intro-steps">
+          <li><b>Pick a scenario</b> in the header — a calm launch, a growth push or a safety crisis.</li>
+          <li><b>Build bundle A</b> from the decision library, or <button class="link-btn" data-intro-preset>start from a preset</button>. Every change re-simulates instantly.</li>
+          <li><b>Switch the sidebar to B</b>, build an alternative and open <button class="link-btn" data-goto="compare">Compare</button> — or see all options at once on <button class="link-btn" data-goto="tradeoffs">Trade-offs</button>.</li>
+        </ol>
+        <p class="intro-note">The model is illustrative: plausible, made-up numbers for a consumer AI product. The <button class="link-btn" data-goto="model">Model</button> tab shows every formula.</p>
+      </div>
+      <button class="intro-close" id="intro-close" aria-label="Hide introduction">×</button>
+    </section>
+
     <nav class="tabs-bar">
       <button class="tab-btn" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="compare">Compare A/B</button>
+      <button class="tab-btn" data-tab="tradeoffs">Trade-offs</button>
       <button class="tab-btn" data-tab="timeline">Timeline</button>
       <button class="tab-btn" data-tab="sensitivity">Sensitivity</button>
       <button class="tab-btn" data-tab="model">Model</button>
@@ -98,6 +119,12 @@
     <div class="tabs-content">
       <div class="tab-pane" data-tab="dashboard" id="tab-dashboard">
         <p class="empty">Loading simulation...</p>
+      </div>
+      <div class="tab-pane" data-tab="compare" id="tab-compare">
+        <p class="empty">Loading comparison...</p>
+      </div>
+      <div class="tab-pane" data-tab="tradeoffs" id="tab-tradeoffs">
+        <p class="empty">Loading trade-off map...</p>
       </div>
       <div class="tab-pane" data-tab="timeline" id="tab-timeline">
         <p class="empty">Loading charts...</p>
