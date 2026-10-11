@@ -1,3 +1,4 @@
+import { L } from './i18n.js';
 // Small SVG chart kit with hover tooltips (used by Compare and Trade-offs).
 // Series colours come from CSS custom properties (--series-a, --series-b) so they stay in one place.
 
@@ -78,7 +79,7 @@ export function lineChart(container, { title, series, fmt = v => v.toFixed(0), y
   for (let i = 0; i <= xt; i++) {
     const d = Math.round(i / xt * (n - 1));
     const t = el('text', { x: x(d), y: f.pad.t + f.h + 18, class: 'viz-tick', 'text-anchor': 'middle' }, f.svg);
-    t.textContent = 'd' + d;
+    t.textContent = L('d', 'д') + d;
   }
   if (zeroLine && lo < 0 && hi > 0) el('line', { x1: f.pad.l, x2: f.pad.l + f.w, y1: y(0), y2: y(0), class: 'viz-zero' }, f.svg);
   for (const m of markers) {
@@ -108,7 +109,7 @@ export function lineChart(container, { title, series, fmt = v => v.toFixed(0), y
     const i = Math.max(0, Math.min(n - 1, Math.round((p.x - f.pad.l) / f.w * (n - 1))));
     cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
     series.forEach((s, k) => { dots[k].setAttribute('cx', x(i)); dots[k].setAttribute('cy', y(s.values[i])); dots[k].setAttribute('visibility', 'visible'); });
-    showTip(`<div class="tip-head">Day ${i}</div>` + series.map(s =>
+    showTip(`<div class="tip-head">${L('Day', 'День')} ${i}</div>` + series.map(s =>
       `<div class="tip-row"><span class="tip-swatch" style="background:${s.color}"></span>${esc(s.label)}<b>${fmt(s.values[i])}</b></div>`).join(''),
       ev.clientX, ev.clientY);
   };

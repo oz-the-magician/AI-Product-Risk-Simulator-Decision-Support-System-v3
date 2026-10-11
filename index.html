@@ -13,30 +13,30 @@
 
 <!-- ── Header ── -->
 <header class="app-header">
-  <div class="logo">AI Risk <span>Simulator</span></div>
+  <div class="logo">AI Risk <span data-i18n="Simulator" data-i18n-ru="Симулятор">Simulator</span></div>
 
   <div class="header-controls">
     <div class="control-group">
-      <label for="scenario-select">Scenario</label>
+      <label for="scenario-select" data-i18n="Scenario" data-i18n-ru="Сценарий">Scenario</label>
       <select id="scenario-select" class="styled-select"></select>
     </div>
 
     <div class="control-group">
-      <label for="horizon-select">Horizon</label>
+      <label for="horizon-select" data-i18n="Horizon" data-i18n-ru="Горизонт">Horizon</label>
       <select id="horizon-select" class="styled-select">
-        <option value="30">30d</option>
-        <option value="60" selected>60d</option>
-        <option value="90">90d</option>
-        <option value="180">180d</option>
+        <option value="30" data-i18n="30d" data-i18n-ru="30 дн.">30d</option>
+        <option value="60" selected data-i18n="60d" data-i18n-ru="60 дн.">60d</option>
+        <option value="90" data-i18n="90d" data-i18n-ru="90 дн.">90d</option>
+        <option value="180" data-i18n="180d" data-i18n-ru="180 дн.">180d</option>
       </select>
     </div>
 
     <div class="control-group">
-      <label for="mc-runs-input">MC Runs</label>
+      <label for="mc-runs-input" data-i18n="MC runs" data-i18n-ru="Прогонов MC">MC runs</label>
       <input type="number" id="mc-runs-input" min="100" max="2000" step="100" value="300">
     </div>
 
-    <button class="btn btn-primary" id="mc-btn">Run MC</button>
+    <button class="btn btn-primary" id="mc-btn" data-i18n="Run MC" data-i18n-ru="Запустить MC">Run MC</button>
 
     <div class="mc-progress-wrap" id="mc-progress" style="display:none">
       <div class="mc-progress-outer">
@@ -45,10 +45,15 @@
       <span class="mc-status-text" id="mc-status">—</span>
     </div>
 
+    <div class="lang-switch slot-switch" role="group" aria-label="Language / Язык">
+      <button class="lang-btn" data-lang="en" aria-pressed="true">EN</button>
+      <button class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
+    </div>
+
     <div class="header-tools">
-      <button class="btn btn-ghost" id="tour-btn" title="Step-by-step guide to the simulator"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg>Tour</button>
-      <button class="btn btn-ghost" id="export-btn"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,112v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V112A16,16,0,0,1,56,96H80a8,8,0,0,1,0,16H56v96H200V112H176a8,8,0,0,1,0-16h24A16,16,0,0,1,216,112ZM93.66,69.66,120,43.31V136a8,8,0,0,0,16,0V43.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,69.66Z"/></svg>Export</button>
-      <button class="btn btn-ghost" id="import-btn"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"/></svg>Import</button>
+      <button class="btn btn-ghost" id="tour-btn" title="Step-by-step guide to the simulator" data-i18n-title="Step-by-step guide to the simulator" data-i18n-title-ru="Пошаговая инструкция по симулятору"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg><span data-i18n="Tour" data-i18n-ru="Тур">Tour</span></button>
+      <button class="btn btn-ghost" id="export-btn"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,112v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V112A16,16,0,0,1,56,96H80a8,8,0,0,1,0,16H56v96H200V112H176a8,8,0,0,1,0-16h24A16,16,0,0,1,216,112ZM93.66,69.66,120,43.31V136a8,8,0,0,0,16,0V43.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,69.66Z"/></svg><span data-i18n="Export" data-i18n-ru="Экспорт">Export</span></button>
+      <button class="btn btn-ghost" id="import-btn"><svg class="ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"/></svg><span data-i18n="Import" data-i18n-ru="Импорт">Import</span></button>
       <input type="file" id="import-file" accept=".json" style="display:none">
     </div>
   </div>
@@ -81,14 +86,14 @@
   <!-- Sidebar: Decisions -->
   <aside class="sidebar">
     <div class="sidebar-section" style="flex:1.2; border-bottom:1px solid var(--c-border)">
-      <div class="sidebar-title">Decision Library</div>
+      <div class="sidebar-title" data-i18n="Decision library" data-i18n-ru="Библиотека решений">Decision library</div>
       <div id="decision-library"></div>
     </div>
 
     <div class="sidebar-section" style="flex:1">
       <div class="sidebar-title bundle-title">
-        <span>Bundle</span>
-        <span class="slot-switch" role="group" aria-label="Which bundle the sidebar edits">
+        <span data-i18n="Bundle" data-i18n-ru="Набор">Bundle</span>
+        <span class="slot-switch" role="group" aria-label="Which bundle the sidebar edits" data-i18n-aria="Which bundle the sidebar edits" data-i18n-aria-ru="Какой набор редактирует панель">
           <button class="slot-btn slot-a" data-slot="A" aria-pressed="true">A</button>
           <button class="slot-btn slot-b" data-slot="B" aria-pressed="false">B</button>
         </span>
@@ -99,34 +104,34 @@
 
   <!-- Main Content: Tabs -->
   <main class="main-content">
-    <nav class="tabs-bar" aria-label="Views">
+    <nav class="tabs-bar" aria-label="Views" data-i18n-aria="Views" data-i18n-aria-ru="Разделы">
       <span class="tab-pill" aria-hidden="true"></span>
-      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
-      <button class="tab-btn" data-tab="compare">Compare A/B</button>
-      <button class="tab-btn" data-tab="tradeoffs">Trade-offs</button>
-      <button class="tab-btn" data-tab="timeline">Timeline</button>
-      <button class="tab-btn" data-tab="sensitivity">Sensitivity</button>
-      <button class="tab-btn" data-tab="model">Model</button>
+      <button class="tab-btn" data-tab="dashboard" data-i18n="Dashboard" data-i18n-ru="Обзор">Dashboard</button>
+      <button class="tab-btn" data-tab="compare" data-i18n="Compare A/B" data-i18n-ru="Сравнение A/B">Compare A/B</button>
+      <button class="tab-btn" data-tab="tradeoffs" data-i18n="Trade-offs" data-i18n-ru="Компромиссы">Trade-offs</button>
+      <button class="tab-btn" data-tab="timeline" data-i18n="Timeline" data-i18n-ru="Динамика">Timeline</button>
+      <button class="tab-btn" data-tab="sensitivity" data-i18n="Sensitivity" data-i18n-ru="Чувствительность">Sensitivity</button>
+      <button class="tab-btn" data-tab="model" data-i18n="Model" data-i18n-ru="Модель">Model</button>
     </nav>
 
     <div class="tabs-content">
       <div class="tab-pane" data-tab="dashboard" id="tab-dashboard">
-        <p class="empty">Loading simulation...</p>
+        <p class="empty" data-i18n="Loading simulation..." data-i18n-ru="Загружаю симуляцию…">Loading simulation...</p>
       </div>
       <div class="tab-pane" data-tab="compare" id="tab-compare">
-        <p class="empty">Loading comparison...</p>
+        <p class="empty" data-i18n="Loading comparison..." data-i18n-ru="Загружаю сравнение…">Loading comparison...</p>
       </div>
       <div class="tab-pane" data-tab="tradeoffs" id="tab-tradeoffs">
-        <p class="empty">Loading trade-off map...</p>
+        <p class="empty" data-i18n="Loading trade-off map..." data-i18n-ru="Загружаю карту компромиссов…">Loading trade-off map...</p>
       </div>
       <div class="tab-pane" data-tab="timeline" id="tab-timeline">
-        <p class="empty">Loading charts...</p>
+        <p class="empty" data-i18n="Loading charts..." data-i18n-ru="Загружаю графики…">Loading charts...</p>
       </div>
       <div class="tab-pane" data-tab="sensitivity" id="tab-sensitivity">
-        <p class="empty">Loading sensitivity analysis...</p>
+        <p class="empty" data-i18n="Loading sensitivity analysis..." data-i18n-ru="Загружаю анализ чувствительности…">Loading sensitivity analysis...</p>
       </div>
       <div class="tab-pane" data-tab="model" id="tab-model">
-        <p class="empty">Loading model documentation...</p>
+        <p class="empty" data-i18n="Loading model documentation..." data-i18n-ru="Загружаю описание модели…">Loading model documentation...</p>
       </div>
     </div>
   </main>

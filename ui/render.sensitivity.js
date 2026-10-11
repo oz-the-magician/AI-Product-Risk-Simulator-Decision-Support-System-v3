@@ -1,3 +1,4 @@
+import { L, t } from './i18n.js';
 import { METRICS } from '../data/metrics.js';
 import { DECISIONS } from '../data/decisions.js';
 import { runSimulation } from '../engine/simulator.js';
@@ -6,14 +7,14 @@ export function renderSensitivity(container, scenario, bundle, horizonDays, mcRe
   container.innerHTML = `
     <div class="sensitivity-controls">
       <div class="sens-mode-tabs">
-        <button class="sens-tab active" data-mode="ota">One-at-a-Time</button>
-        <button class="sens-tab" data-mode="tornado">Tornado Chart</button>
+        <button class="sens-tab active" data-mode="ota">${L('One at a time', 'По одному')}</button>
+        <button class="sens-tab" data-mode="tornado">${L('Tornado chart', 'Диаграмма-торнадо')}</button>
       </div>
       <div id="sens-ota" class="sens-panel active">
         <div class="ota-controls">
-          <label>Decision:
+          <label>${L('Decision', 'Решение')}
             <select id="ota-decision-select" class="styled-select">
-              ${DECISIONS.map(d => `<option value="${d.id}">${d.name}</option>`).join('')}
+              ${DECISIONS.map(d => `<option value="${d.id}">${t(d.name)}</option>`).join('')}
             </select>
           </label>
         </div>
@@ -23,7 +24,7 @@ export function renderSensitivity(container, scenario, bundle, horizonDays, mcRe
         </div>
       </div>
       <div id="sens-tornado" class="sens-panel" style="display:none">
-        ${mcResults ? renderTornado(mcResults) : '<p class="empty">Run Monte Carlo first to see tornado chart.</p>'}
+        ${mcResults ? renderTornado(mcResults) : `<p class="empty">${L('Run Monte Carlo first to see the tornado chart.', 'Сначала запустите Монте-Карло, чтобы увидеть диаграмму-торнадо.')}</p>`}
       </div>
     </div>
   `;
@@ -105,7 +106,7 @@ function drawOTACurves(container, decisionId, scenario, bundle, horizonDays) {
     ctx.fillStyle = 'rgba(255,255,255,0.8)';
     ctx.font = '600 12.5px "Sora", system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Intensity', ox + w / 2, oy + h + 34);
+    ctx.fillText(L('Intensity', 'Интенсивность'), ox + w / 2, oy + h + 34);
     ctx.fillText(label, ox + w / 2, oy - 10);
 
     // Curve
@@ -134,15 +135,15 @@ function drawOTACurves(container, decisionId, scenario, bundle, horizonDays) {
     }
   }
 
-  drawCurve('sens-risk-chart', riskVals, 'Risk Score vs Intensity', 'rgb(255,80,80)');
-  drawCurve('sens-net-chart', netVals, 'Net Revenue vs Intensity ($)', 'rgb(80,220,130)');
+  drawCurve('sens-risk-chart', riskVals, L('Risk score by intensity', 'Оценка риска от интенсивности'), 'rgb(240,89,91)');
+  drawCurve('sens-net-chart', netVals, L('Net revenue by intensity ($)', 'Чистая выручка от интенсивности ($)'), 'rgb(75,208,142)');
 }
 
 function renderTornado(mcResults) {
   // Sort metrics by breach probability for tornado
   const metrics = METRICS.map ? null : null;
   const bp = mcResults.breachProbs;
-  if (!bp) return '<p class="empty">No Monte Carlo data available.</p>';
+  if (!bp) return `<p class="empty">${L('No Monte Carlo data available.', 'Нет данных Монте-Карло.')}</p>`;
 
   import('../data/metrics.js').then(({ METRICS }) => {
     // handled via inline rendering
@@ -155,10 +156,10 @@ function renderTornado(mcResults) {
 
   return `
     <div class="tornado-chart">
-      <h3 class="chart-title">Breach Probability by Metric (Monte Carlo)</h3>
+      <h3 class="chart-title">${L('Breach probability by metric (Monte Carlo)', 'Вероятность нарушения порога по метрикам (Монте-Карло)')}</h3>
       ${entries.map(e => `
         <div class="tornado-row">
-          <span class="tornado-label">${e.id}</span>
+          <span class="tornado-label">${t(METRICS.find(m => m.id === e.id)?.name ?? e.id)}</span>
           <div class="tornado-bar-wrap">
             <div class="tornado-bar yellow" style="width:${(e.yellowProb * 100).toFixed(1)}%"></div>
             <div class="tornado-bar red" style="width:${(e.redProb * 100).toFixed(1)}%"></div>
@@ -167,8 +168,8 @@ function renderTornado(mcResults) {
         </div>
       `).join('')}
       <div class="tornado-legend">
-        <span class="leg-item"><span class="leg-dot" style="background:#F2B640"></span> Yellow breach</span>
-        <span class="leg-item"><span class="leg-dot" style="background:#F0595B"></span> Red breach</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#F2B640"></span> ${L('Watch line crossed', 'Пересечён порог внимания')}</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#F0595B"></span> ${L('Breach line crossed', 'Пересечён порог нарушения')}</span>
       </div>
     </div>
   `;
