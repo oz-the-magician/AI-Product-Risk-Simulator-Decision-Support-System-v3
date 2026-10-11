@@ -2,10 +2,16 @@
 
 A static web application for simulating AI Product Safety decisions over time.
 
+**[Open the simulator →](https://oz-the-magician.github.io/ai-product-risk-simulator-decision-support-system-v3/)**
+
+> The model is illustrative: metrics, guardrails and coefficients are made-up but plausible
+> numbers for a consumer AI product. It shows how safety, product and money trade off —
+> it is not calibrated on real data.
+
 ## Features
 
 - **Time-based simulation** — step-by-step day simulation with lag/decay effects
-- **Monte Carlo** — 100–2000 runs in a Web Worker with p10/p50/p90 bands
+- **Monte Carlo** — 100–2000 runs in a Web Worker with p10/p50/p90 bands (cancellable)
 - **Causal graph** — metrics influence each other via configurable edge coefficients
 - **4 tabs**: Dashboard / Timeline / Sensitivity / Model
 - **Decision Bundle** — add/remove decisions, set intensity sliders
@@ -28,6 +34,16 @@ npx serve .
 Then open `http://localhost:8080`.
 
 > ⚠️ **Must use a server** (not `file://`) because ES Modules require HTTP.
+
+### Tests
+
+```bash
+npm test        # Node 18+, no dependencies — runs tests/*.test.mjs
+```
+
+The tests check that the model behaves sensibly: no drift without decisions, decisions move
+metrics the documented way and fade out, NPS effects are points, decisions cost money,
+no scenario saturates, and the Monte Carlo median matches the deterministic run.
 
 ### GitHub Pages
 
@@ -52,9 +68,15 @@ Then open `http://localhost:8080`.
   state.js           — initial state factory
   transitions.js     — causal graph edges + applyTransitions()
   risk.js            — riskScore, tailRiskProb, guardrail breach detection
-  economics.js       — Revenue, Cost, Net per day
+  economics.js       — Revenue, Cost (incl. decision costs), Net per day
   simulator.js       — main runSimulation() function
-  montecarlo.worker.js — Web Worker: samples priors, runs N simulations
+  montecarlo.js      — Monte Carlo core: samples uncertainty, aggregates bands
+  montecarlo.worker.js — Web Worker: runs Monte Carlo in chunks, supports Cancel
+  rng.js             — seedable RNG and samplers (normal, lognormal, triangular)
+  units.js           — relative vs absolute effects, metric bounds
+
+/tests/
+  engine.test.mjs    — model sanity tests (node --test)
 
 /ui/
   tabs.js            — tab switching
@@ -68,7 +90,23 @@ Then open `http://localhost:8080`.
 
 ## Key Design Decisions
 
-- **Multiplicative effects**: `x *= (1 + delta)` not additive
-- **Lagged + decaying decisions**: effects activate after `lagDays`, decay with `halfLifeDays` half-life
-- **Sigmoid tail risk**: models non-linear probability of SEV events from key safety metrics
-- **Monte Carlo in Worker**: never blocks UI thread; cancel-able with progress bar
+- **Levels, not daily multipliers.** A decision shifts the *target level* of a metric, and the metric
+  moves toward it (35 % of the gap per day). Effects start after `lagDays` and fade with a
+  `halfLifeDays` half-life. With no decisions and no shocks every metric stays exactly at baseline.
+- **Relative and absolute effects.** `+0.18` on a rate means +18 %; NPS levers are points
+  (`kind: "abs"`), so −4 means minus four NPS points.
+- **Causal graph as elasticities.** If a parent metric is 10 % above its reference, the child's
+  target shifts by `k × 10 %`. The system settles at an equilibrium instead of drifting.
+- **Risk from guardrails.** Each metric gets a stress from 0 (green threshold) to 1 (red threshold).
+  A power mean makes the worst metrics dominate; red breaches add a penalty. Baseline ≈ 25,
+  every metric on its yellow line ≈ 58, everything red = 100.
+- **SEV probability.** A sigmoid of the weighted stress of incident, abuse, jailbreak and
+  false-negative rates; scenario `riskSensitivity` multiplies the odds.
+- **Decisions cost money.** Each decision's `amountPerDay × intensity` is subtracted from Net.
+- **Monte Carlo on consequences.** Each run samples today's metric values, edge strengths,
+  decision effectiveness and shock sizes. Risk is scored on the change since day 0 of the run,
+  so the p50 line matches the deterministic simulation and the band shows how uncertain the
+  outcome of the chosen decisions is.
+- **Monte Carlo in a Worker**, processed in chunks so the UI stays responsive and Cancel works.
+
+The **Model** tab in the app lists every metric, edge and formula.

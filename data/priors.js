@@ -1,15 +1,18 @@
-// Uncertainty distributions for Monte Carlo
-// type: "triangular" | "normal"
+// Uncertainty distributions for Monte Carlo.
+// Every prior is centred on the metric baseline, so the median Monte Carlo run
+// matches the deterministic simulation. Rates use a lognormal: same median,
+// longer tail toward "worse" — things can get much worse more easily than much better.
+// type: "lognormal" (median = baseline) | "normal" | "triangular"
 export const METRIC_PRIORS = {
-  incident_rate:    { type: "triangular", min: 0.10, mode: 0.30, max: 0.60 },
-  abuse_rate:       { type: "triangular", min: 0.50, mode: 1.20, max: 2.80 },
-  jailbreak_rate:   { type: "triangular", min: 0.20, mode: 0.50, max: 1.60 },
+  incident_rate:    { type: "lognormal", sigma: 0.25 },
+  abuse_rate:       { type: "lognormal", sigma: 0.30 },
+  jailbreak_rate:   { type: "lognormal", sigma: 0.35 },
   false_positive:   { type: "normal",     mean: 2.50, sd: 0.60 },
   false_negative:   { type: "normal",     mean: 0.80, sd: 0.20 },
   p95_latency:      { type: "normal",     mean: 420,  sd: 60 },
   policy_coverage:  { type: "normal",     mean: 78,   sd: 5 },
   moderation_lag:   { type: "normal",     mean: 85,   sd: 15 },
-  user_appeal_rate: { type: "triangular", min: 1.50, mode: 3.20, max: 7.00 },
+  user_appeal_rate: { type: "lognormal", sigma: 0.25 },
   eval_pass_rate:   { type: "normal",     mean: 91,   sd: 3 },
   retention:        { type: "normal",     mean: 42,   sd: 5 },
   dau:              { type: "normal",     mean: 280,  sd: 30 },
@@ -40,3 +43,10 @@ export const EDGE_PRIORS = {
   "traffic->compute_cost":     { type: "normal", mean: +0.15, sd: 0.04 },
   "moderation_lag->retention": { type: "normal", mean: -0.05, sd: 0.02 }
 };
+
+// How well a decision works in reality vs. its nominal effect (lognormal sigma).
+// 0.25 ≈ the middle 80 % of runs land between ×0.73 and ×1.38 of the nominal effect.
+export const EFFECT_UNCERTAINTY = 0.25;
+
+// How large scenario shocks turn out vs. their nominal size (lognormal sigma).
+export const SHOCK_UNCERTAINTY = 0.20;
