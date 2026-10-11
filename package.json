@@ -1,0 +1,10 @@
+{
+  "name": "ai-risk-simulator",
+  "private": true,
+  "description": "Static web app for simulating AI product safety decisions over time",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "start": "python3 -m http.server 8080"
+  }
+}

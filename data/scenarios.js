@@ -41,7 +41,7 @@ export const SCENARIOS = [
       { day: 0,  metricId: "incident_rate", shock: +0.40 },
       { day: 0,  metricId: "abuse_rate",    shock: +0.35 },
       { day: 0,  metricId: "jailbreak_rate",shock: +0.30 },
-      { day: 3,  metricId: "nps",           shock: -18 },
+      { day: 3,  metricId: "nps",           shock: -18, kind: "abs" },
       { day: 3,  metricId: "retention",     shock: -0.12 },
       { day: 7,  metricId: "dau",           shock: -0.15 },
       { day: 10, metricId: "traffic",       shock: +0.40 },

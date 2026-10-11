@@ -91,7 +91,7 @@ function drawOTACurves(container, decisionId, scenario, bundle, horizonDays) {
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.font = '11px "JetBrains Mono", monospace';
       ctx.textAlign = 'right';
-      ctx.fillText(val.toFixed(0), ox - 6, y + 4);
+      ctx.fillText(axisLabel(val, maxY - minY), ox - 6, y + 4);
     }
     for (let i = 0; i <= steps; i++) {
       const x = ox + (i / steps) * w;
@@ -172,4 +172,11 @@ function renderTornado(mcResults) {
       </div>
     </div>
   `;
+}
+
+// Enough decimals that neighbouring grid lines never show the same number.
+function axisLabel(val, range) {
+  const step = range / 5;
+  const decimals = step >= 1 ? 0 : step >= 0.1 ? 1 : 2;
+  return Math.abs(val) >= 10000 ? (val / 1000).toFixed(step >= 1000 ? 0 : 1) + 'k' : val.toFixed(decimals);
 }

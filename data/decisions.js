@@ -9,7 +9,7 @@ export const DECISIONS = [
       { metricId: "abuse_rate",     effect: -0.22, lagDays: 3, halfLifeDays: 14 },
       { metricId: "jailbreak_rate", effect: -0.15, lagDays: 3, halfLifeDays: 14 },
       { metricId: "retention",      effect: -0.05, lagDays: 7, halfLifeDays: 21 },
-      { metricId: "nps",            effect: -4,    lagDays: 10, halfLifeDays: 30 }
+      { metricId: "nps",            effect: -4, kind: "abs",    lagDays: 10, halfLifeDays: 30 }
     ],
     cost: { type: "opex", amountPerDay: 800 },
     latencyImpactMs: 12
@@ -23,7 +23,7 @@ export const DECISIONS = [
       { metricId: "false_positive", effect: -0.25, lagDays: 1, halfLifeDays: 7 },
       { metricId: "abuse_rate",     effect: +0.18, lagDays: 5, halfLifeDays: 21 },
       { metricId: "retention",      effect: +0.04, lagDays: 5, halfLifeDays: 21 },
-      { metricId: "nps",            effect: +5,    lagDays: 7, halfLifeDays: 30 },
+      { metricId: "nps",            effect: +5, kind: "abs",    lagDays: 7, halfLifeDays: 30 },
       { metricId: "user_appeal_rate", effect: -0.30, lagDays: 3, halfLifeDays: 14 }
     ],
     cost: { type: "opex", amountPerDay: 200 },
@@ -122,7 +122,7 @@ export const DECISIONS = [
     levers: [
       { metricId: "abuse_rate",      effect: -0.12, lagDays: 14, halfLifeDays: 45 },
       { metricId: "incident_rate",   effect: -0.10, lagDays: 14, halfLifeDays: 45 },
-      { metricId: "nps",             effect: +3,    lagDays: 7, halfLifeDays: 60 },
+      { metricId: "nps",             effect: +3, kind: "abs",    lagDays: 7, halfLifeDays: 60 },
       { metricId: "retention",       effect: +0.02, lagDays: 14, halfLifeDays: 60 }
     ],
     cost: { type: "capex", amountPerDay: 1200 },
@@ -163,7 +163,7 @@ export const DECISIONS = [
     description: "Publish safety metrics publicly to build trust with users and regulators",
     category: "Policy",
     levers: [
-      { metricId: "nps",             effect: +6,    lagDays: 5, halfLifeDays: 90 },
+      { metricId: "nps",             effect: +6, kind: "abs",    lagDays: 5, halfLifeDays: 90 },
       { metricId: "retention",       effect: +0.03, lagDays: 7, halfLifeDays: 90 },
       { metricId: "user_appeal_rate",effect: -0.10, lagDays: 7, halfLifeDays: 45 }
     ],

@@ -1,6 +1,8 @@
-import { METRICS } from '../data/metrics.js';
 import { EDGE_PRIORS } from '../data/priors.js';
+import { sampleNormal } from './rng.js';
 
+// Causal graph. `k` is an elasticity: if `from` sits 10 % above its reference,
+// the target level of `to` shifts by k × 10 %.
 export const CAUSAL_EDGES = [
   { from: "false_positive",  to: "retention",       k: -0.12 },
   { from: "false_positive",  to: "nps",             k: -0.10 },
@@ -22,55 +24,28 @@ export const CAUSAL_EDGES = [
   { from: "moderation_lag",  to: "retention",       k: -0.05 }
 ];
 
-const BASELINES = {};
-for (const m of METRICS) BASELINES[m.id] = m.baseline;
-
-export function applyTransitions(metrics, edgeOverrides = null) {
-  const edges = edgeOverrides || CAUSAL_EDGES;
-  const next = { ...metrics };
-
+// Relative shift of each metric's target level caused by its parents.
+// This is a level relationship, not a daily multiplier, so the system settles
+// at an equilibrium instead of drifting for the whole horizon.
+export function causalShifts(current, reference, edges = CAUSAL_EDGES) {
+  const shifts = {};
   for (const edge of edges) {
-    const cur = metrics[edge.from];
-    const base = BASELINES[edge.from];
-    if (base === undefined || base === 0) continue;
-
-    let delta = (cur - base) / Math.abs(base);
-    delta = Math.max(-1, Math.min(1, delta)); // clamp
-
-    const to = next[edge.to];
-    if (to !== undefined) {
-      next[edge.to] = to * (1 + edge.k * delta * 0.1); // dampened per-day
-    }
+    const ref = reference[edge.from];
+    if (!ref) continue;
+    let dev = (current[edge.from] - ref) / Math.abs(ref);
+    dev = Math.max(-1, Math.min(1, dev));
+    shifts[edge.to] = (shifts[edge.to] ?? 0) + edge.k * dev;
   }
-
-  // Clamp to non-negative
-  for (const id of Object.keys(next)) {
-    if (next[id] < 0) next[id] = 0;
-  }
-
-  return next;
+  return shifts;
 }
 
-export function sampleEdges() {
-  const result = [];
-  for (const edge of CAUSAL_EDGES) {
-    const key = `${edge.from}->${edge.to}`;
-    const prior = EDGE_PRIORS[key];
-    let k = edge.k;
-    if (prior) {
-      if (prior.type === 'normal') {
-        k = sampleNormal(prior.mean, prior.sd);
-      }
-    }
-    result.push({ ...edge, k });
-  }
-  return result;
-}
-
-function sampleNormal(mean, sd) {
-  // Box-Muller
-  const u1 = Math.random();
-  const u2 = Math.random();
-  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return mean + z * sd;
+export function sampleEdges(rng) {
+  return CAUSAL_EDGES.map(edge => {
+    const prior = EDGE_PRIORS[`${edge.from}->${edge.to}`];
+    if (!prior || prior.type !== 'normal') return { ...edge };
+    let k = sampleNormal(rng, prior.mean, prior.sd);
+    // keep the direction of the relationship; only its strength is uncertain
+    if (Math.sign(k) !== Math.sign(prior.mean)) k = 0;
+    return { ...edge, k };
+  });
 }
