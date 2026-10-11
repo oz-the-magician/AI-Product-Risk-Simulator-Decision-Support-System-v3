@@ -14,6 +14,7 @@ import { renderExplain } from './ui/render.explain.js';
 import { renderCompare } from './ui/render.compare.js';
 import { renderTradeoffs } from './ui/render.tradeoffs.js';
 import { esc } from './ui/viz.js';
+import { createTour } from './ui/tour.js';
 
 // ── State ───────────────────────────────────────────────────────────
 const appState = {
@@ -30,7 +31,7 @@ const appState = {
   mcResults: null,
   mcWorker: null,
   mcRunning: false,
-  introDismissed: false,
+  tourSeen: false,
 };
 
 const toStored = b => b.map(x => ({ decisionId: x.decision.id, intensity: x.intensity }));
@@ -55,7 +56,7 @@ function loadFromStorage() {
       appState.bundles.A = fromStored(data.bundle);   // older saves had one bundle
     }
     if (data.activeSlot === 'B') appState.activeSlot = 'B';
-    appState.introDismissed = !!data.introDismissed;
+    appState.tourSeen = !!(data.tourSeen || data.introDismissed);
   } catch(e) {}
 }
 
@@ -68,7 +69,7 @@ function saveToStorage() {
       selectedMetrics: appState.selectedMetrics,
       bundles: { A: toStored(appState.bundles.A), B: toStored(appState.bundles.B) },
       activeSlot: appState.activeSlot,
-      introDismissed: appState.introDismissed
+      tourSeen: appState.tourSeen
     }));
   } catch(e) {}
 }
@@ -306,11 +307,96 @@ function loadPreset(id) {
   bundleChanged();
 }
 
-function renderIntro() {
-  const el = document.getElementById('intro');
-  if (appState.introDismissed) { el.hidden = true; return; }
-  el.hidden = false;
-}
+// ── Guided tour ──────────────────────────────────────────────────────
+const goTab = tab => () => {
+  const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+  if (!btn.classList.contains('active')) btn.click();
+  document.querySelector('.tabs-content')?.scrollTo({ top: 0 });
+};
+const TOUR_STEPS = [
+  {
+    target: null,
+    title: 'Keep an AI product safe without killing growth',
+    body: `<p>This simulator lets you try safety decisions before you commit to them: what they do to risk, to users and to money over the next weeks.</p>
+           <p class="tour-note">The model is illustrative — plausible, made-up numbers for a consumer AI product. About a minute; <kbd>→</kbd> next, <kbd>Esc</kbd> to leave.</p>`
+  },
+  {
+    target: () => document.getElementById('scenario-select').closest('.control-group'),
+    title: '1 · Pick a scenario',
+    body: `<p>A calm launch, an aggressive growth push or a safety crisis. Each one comes with its own events — traffic spikes, an abuse wave, a viral incident.</p>
+           <p>Next to it, <b>Horizon</b> sets how many days are simulated.</p>`
+  },
+  {
+    target: () => document.getElementById('decision-library').closest('.sidebar-section'),
+    title: '2 · Add decisions',
+    body: `<p>Fifteen levers: stricter policy, human review, an ML classifier, rate limits, red-teaming, a growth campaign… Press <b>+</b> to add one to your bundle.</p>
+           <p>Each lever kicks in after a delay and fades over time, like real interventions do.</p>`,
+    placement: 'right'
+  },
+  {
+    target: () => document.getElementById('active-bundle').closest('.sidebar-section'),
+    title: '3 · Tune the bundle',
+    body: `<p>Here are the decisions you picked. The <b>intensity</b> slider sets how hard you push each one, and the badge shows what it costs per day.</p>
+           <p>When the bundle is empty, you'll find ready-made <b>presets</b> for the current scenario here.</p>`,
+    placement: 'right'
+  },
+  {
+    target: '.slot-switch',
+    title: '4 · Build an alternative',
+    body: `<p>You have two bundles, <span class="slot-tag slot-a">A</span> and <span class="slot-tag slot-b">B</span>. This switch picks which one the sidebar edits.</p>
+           <p>Typical move: build A, switch to B, make one different choice — then compare.</p>`,
+    placement: 'right'
+  },
+  {
+    target: '.summary-chips',
+    title: '5 · Headline numbers',
+    body: `<p>Risk score (0–100), the chance of a severe incident, money per day and the worst breach probability — for the bundle you're editing, on the last simulated day.</p>
+           <p>Everything recalculates the moment you change something.</p>`
+  },
+  {
+    target: '#dash-explain',
+    before: goTab('dashboard'),
+    title: '6 · What moved the risk',
+    body: `<p>From a quiet product, through the scenario's events, to each of your decisions — and which metrics carried each effect.</p>
+           <p>The steps add up exactly, so you can see which decision is pulling its weight.</p>`
+  },
+  {
+    target: () => document.querySelector('#tab-compare .cmp-verdict') || document.getElementById('tab-compare'),
+    before: goTab('compare'),
+    title: '7 · Compare A and B',
+    body: `<p>The two bundles side by side over the whole horizon. This line is the verdict in plain words — including <b>how much money each point of risk costs</b>.</p>
+           <p>Below it: the numbers, both runs on one chart, and the metrics that end up differently.</p>`
+  },
+  {
+    target: () => document.getElementById('to-chart') || document.getElementById('tab-tradeoffs'),
+    before: goTab('tradeoffs'),
+    title: '8 · See every option at once',
+    body: `<p>Each dot is a bundle: left is safer, up earns more. Options on the dashed line are efficient; anything below it is beaten on both counts.</p>
+           <p>Click a dot to load it into A or B.</p>`,
+    placement: 'left',
+    inside: 'bottom-right'   // the dominated, least interesting corner of the map
+  },
+  {
+    target: '#mc-btn',
+    title: '9 · Check how sure you can be',
+    body: `<p><b>Run MC</b> simulates hundreds of plausible versions of the future — decisions working better or worse, metrics starting a bit off — and draws uncertainty bands on the Timeline.</p>
+           <p>Bands reset whenever you change a bundle, so they always describe what you see.</p>`
+  },
+  {
+    target: '#tour-btn',
+    before: goTab('dashboard'),
+    title: "That's it",
+    body: `<p>Replay this tour any time from here. The <b>Model</b> tab lists every metric, link and formula behind the numbers.</p>
+           <p>Good first try: load a preset into A, copy it to B, swap one decision, open <b>Compare</b>.</p>`
+  }
+];
+
+const tour = createTour(TOUR_STEPS, {
+  onClose: () => {
+    appState.tourSeen = true;
+    saveToStorage();
+  }
+});
 
 // ── Decision Bundle UI ───────────────────────────────────────────────
 function renderDecisionLibrary() {
@@ -512,21 +598,14 @@ function init() {
     b.setAttribute('aria-pressed', String(b.dataset.slot === appState.activeSlot));
     b.addEventListener('click', () => setActiveSlot(b.dataset.slot));
   });
-  document.getElementById('intro-close').addEventListener('click', () => {
-    appState.introDismissed = true; saveToStorage(); renderIntro();
-  });
-  document.querySelectorAll('[data-intro-preset]').forEach(b => b.addEventListener('click', () => {
-    const p = presetsFor(appState.scenarioId)[0];
-    if (p) loadPreset(p.id);
-  }));
-  document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => {
-    document.querySelector(`.tab-btn[data-tab="${b.dataset.goto}"]`).click();
-  }));
+  document.getElementById('tour-btn').addEventListener('click', () => tour.start());
 
-  renderIntro();
   renderDecisionLibrary();
   renderBundle();
   runDeterministicSim();
+
+  // first visit: start the tour once the page has settled
+  if (!appState.tourSeen) setTimeout(() => tour.start(), 500);
 }
 
 document.addEventListener('DOMContentLoaded', init);

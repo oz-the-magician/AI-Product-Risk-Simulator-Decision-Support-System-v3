@@ -43,6 +43,7 @@
     </div>
 
     <div style="margin-left:auto; display:flex; gap:6px;">
+      <button class="btn btn-ghost" id="tour-btn" title="Step-by-step guide to the simulator">? Tour</button>
       <button class="btn btn-ghost" id="export-btn">Export</button>
       <button class="btn btn-ghost" id="import-btn">Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none">
@@ -94,19 +95,6 @@
 
   <!-- Main Content: Tabs -->
   <main class="main-content">
-    <section class="intro" id="intro" hidden aria-labelledby="intro-title">
-      <div class="intro-body">
-        <h2 id="intro-title">Decide how to keep an AI product safe without killing growth</h2>
-        <ol class="intro-steps">
-          <li><b>Pick a scenario</b> in the header — a calm launch, a growth push or a safety crisis.</li>
-          <li><b>Build bundle A</b> from the decision library, or <button class="link-btn" data-intro-preset>start from a preset</button>. Every change re-simulates instantly.</li>
-          <li><b>Switch the sidebar to B</b>, build an alternative and open <button class="link-btn" data-goto="compare">Compare</button> — or see all options at once on <button class="link-btn" data-goto="tradeoffs">Trade-offs</button>.</li>
-        </ol>
-        <p class="intro-note">The model is illustrative: plausible, made-up numbers for a consumer AI product. The <button class="link-btn" data-goto="model">Model</button> tab shows every formula.</p>
-      </div>
-      <button class="intro-close" id="intro-close" aria-label="Hide introduction">×</button>
-    </section>
-
     <nav class="tabs-bar">
       <button class="tab-btn" data-tab="dashboard">Dashboard</button>
       <button class="tab-btn" data-tab="compare">Compare A/B</button>

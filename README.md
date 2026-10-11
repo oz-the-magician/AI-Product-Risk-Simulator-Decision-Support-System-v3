@@ -20,7 +20,9 @@ A static web application for simulating AI Product Safety decisions over time.
   share (Shapley values, so the steps add up exactly), with the metrics that carry each effect
 - **Trade-off map** — average risk vs total net for every preset, every single decision and bundles A/B,
   with the Pareto frontier; click any dot to load it into A or B
-- **Presets & onboarding** — ready-made bundles per scenario in the empty sidebar, a short how-to that can be dismissed
+- **Guided tour** — 11 steps with the rest of the screen dimmed and the current control spotlighted; starts on the
+  first visit, replay from **? Tour** in the header (keyboard: → next, ← back, Esc to leave)
+- **Presets** — ready-made bundles per scenario in the empty sidebar
 - **6 tabs**: Dashboard / Compare A/B / Trade-offs / Timeline / Sensitivity / Model
 - **Decision Bundle** — add/remove decisions, set intensity sliders
 - **Export/Import** — JSON config persistence via localStorage + download
@@ -99,6 +101,7 @@ no scenario saturates, and the Monte Carlo median matches the deterministic run.
   render.compare.js  — Compare A/B tab
   render.tradeoffs.js — Trade-offs tab (scatter + frontier)
   viz.js             — small SVG chart kit with hover tooltips
+  tour.js            — step-by-step guided tour with spotlight
   components.js      — reusable UI helpers
   format.js          — number formatters
 ```
