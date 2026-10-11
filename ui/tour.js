@@ -19,11 +19,10 @@ export function createTour(steps, { onClose } = {}) {
       <div class="tour-tip" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-body">
         <div class="tour-arrow" aria-hidden="true"></div>
         <div class="tour-progress" aria-hidden="true"></div>
-        <div class="tour-count"></div>
         <h3 class="tour-title" id="tour-title"></h3>
         <div class="tour-body" id="tour-body"></div>
         <div class="tour-actions">
-          <button type="button" class="tour-skip">Skip tour</button>
+          <span class="tour-left"><button type="button" class="tour-skip">Skip tour</button><span class="tour-count"></span></span>
           <span class="tour-nav">
             <button type="button" class="btn btn-ghost btn-sm tour-back">Back</button>
             <button type="button" class="btn btn-primary btn-sm tour-next">Next</button>
@@ -71,7 +70,7 @@ export function createTour(steps, { onClose } = {}) {
       // scroll only when the target is actually cut off, so the page doesn't jump
       const r0 = current?.getBoundingClientRect();
       if (r0 && (r0.top < 0 || r0.bottom > window.innerHeight)) current.scrollIntoView({ block: 'nearest' });
-      root.querySelector('.tour-count').textContent = `Step ${i + 1} of ${steps.length}`;
+      root.querySelector('.tour-count').textContent = `${i + 1} / ${steps.length}`;
       root.querySelector('.tour-title').textContent = s.title;
       root.querySelector('.tour-body').innerHTML = s.body;
       root.querySelectorAll('.tour-progress i').forEach((d, k) => d.classList.toggle('on', k <= i));

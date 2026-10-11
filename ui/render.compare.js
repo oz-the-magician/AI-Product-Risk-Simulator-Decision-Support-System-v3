@@ -1,3 +1,4 @@
+import { icon } from './icons.js';
 // A/B comparison of two decision bundles under the same scenario.
 import { METRICS } from '../data/metrics.js';
 import { fmtMetric, fmtMoney, fmtPct, statusEmoji } from './format.js';
@@ -23,7 +24,7 @@ function deltaCell(row, a, b) {
   const shown = row.key === 'avgSev' ? (d > 0 ? '+' : '−') + (Math.abs(d) * 100).toFixed(1) + ' pp'
     : row.fmt === money ? (d > 0 ? '+' : '−') + '$' + fmtMoney(Math.abs(d))
     : (d > 0 ? '+' : '−') + row.fmt(Math.abs(d));
-  return `<td class="cmp-delta ${good ? 'good' : 'bad'}"><span aria-hidden="true">${good ? '✓' : '✕'}</span> ${shown} <span class="sr">${good ? 'better' : 'worse'}</span></td>`;
+  return `<td class="cmp-delta ${good ? 'good' : 'bad'}">${icon(good ? 'check' : 'x', 'ic-sm')} ${shown} <span class="sr">${good ? 'better' : 'worse'}</span></td>`;
 }
 
 function verdict(A, B, horizon, names) {
@@ -33,7 +34,7 @@ function verdict(A, B, horizon, names) {
   if (dRisk <= 0 && dNet >= 0) return `<b>${names.B} is better on both</b>: ${r.toFixed(1)} lower average risk and ${money(n)} more over ${horizon} days.`;
   if (dRisk >= 0 && dNet <= 0) return `<b>${names.A} is better on both</b>: ${r.toFixed(1)} lower average risk and ${money(n)} more over ${horizon} days.`;
   const safer = dRisk < 0 ? 'B' : 'A', other = safer === 'A' ? 'B' : 'A';
-  const perPoint = r > 0.05 ? ` — about <b>${money(n / r)} per risk point</b>` : '';
+  const perPoint = r > 0.05 ? `, about <b>${money(n / r)} per risk point</b>` : '';
   return `<b>${names[safer]}</b> is safer by ${r.toFixed(1)} points of average risk, but earns ${money(n)} less than ${names[other].toLowerCase() === 'doing nothing' ? 'doing nothing' : names[other]} over ${horizon} days${perPoint}. Whether that's worth it is your call.`;
 }
 
@@ -65,14 +66,14 @@ export function renderCompare(container, { A, B, activeSlot, horizon, onAction }
     <div class="cmp-top">
       ${bundleCard('A', A.bundle, A.summary, activeSlot === 'A')}
       <div class="cmp-actions">
-        <button class="btn btn-ghost btn-sm" data-act="copy" title="Replace B with a copy of A">Copy A → B</button>
-        <button class="btn btn-ghost btn-sm" data-act="swap">Swap A ↔ B</button>
+        <button class="btn btn-ghost btn-sm" data-act="copy" title="Replace B with a copy of A">${icon('copy')}Copy A to B</button>
+        <button class="btn btn-ghost btn-sm" data-act="swap">${icon('arrowsLR')}Swap A and B</button>
       </div>
       ${bundleCard('B', B.bundle, B.summary, activeSlot === 'B')}
     </div>
 
     ${aEmpty && bEmpty ? `<p class="cmp-empty">Both bundles are empty. Load a preset or add decisions in the sidebar, then switch the sidebar to <b>B</b> and build an alternative.</p>` : ''}
-    ${!aEmpty && bEmpty ? `<p class="cmp-empty">Bundle B is empty, so this compares A against doing nothing. <button class="btn btn-ghost btn-sm" data-act="copy">Copy A → B</button> and change one decision to see what it's worth.</p>` : ''}
+    ${!aEmpty && bEmpty ? `<p class="cmp-empty">Bundle B is empty, so this compares A against doing nothing. <button class="btn btn-ghost btn-sm" data-act="copy">${icon('copy')}Copy A to B</button> and change one decision to see what it's worth.</p>` : ''}
 
     <p class="cmp-verdict">${verdict(A.summary, B.summary, horizon, { A: aEmpty ? 'Doing nothing' : 'A', B: bEmpty ? 'Doing nothing' : 'B' })}</p>
 
