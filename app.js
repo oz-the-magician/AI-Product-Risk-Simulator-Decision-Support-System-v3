@@ -117,7 +117,7 @@ function updateSummaryChips() {
   }
   document.getElementById('chip-tail').innerHTML = `<span class="chip-label">P(SEV) · ${L('day', 'день')} ${appState.horizonDays}</span><span class="chip-value">${fmtPct(tailVal)}</span>`;
   document.getElementById('chip-tail').className = `chip ${tailColor}`;
-  document.getElementById('chip-net').innerHTML = `<span class="chip-label">${L('Net/day', 'Чистыми/день')}</span><span class="chip-value">$${fmtMoney(netVal)}</span>`;
+  document.getElementById('chip-net').innerHTML = `<span class="chip-label">${L('Net/day', 'Чистыми/день')}</span><span class="chip-value">${netVal < 0 ? '−$' : '$'}${fmtMoney(Math.abs(netVal))}</span>`;
   document.getElementById('chip-net').className = `chip ${netColor}`;
 
   // Overall P(red)

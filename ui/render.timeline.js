@@ -202,7 +202,7 @@ function drawNetChart(canvas, states, mcResults, horizon, scenario) {
   const maxY = Math.max(0, Math.max(...allVals) * 1.1);
 
   const dims = getChartDims(canvas);
-  drawAxes(ctx, dims, minY, maxY, horizon, L('Net revenue ($/day)', 'Чистая выручка ($/день)'), v => '$' + (v/1000).toFixed(1) + 'k');
+  drawAxes(ctx, dims, minY, maxY, horizon, L('Net revenue ($/day)', 'Чистая выручка ($/день)'), v => (v < 0 ? '−$' : '$') + (Math.abs(v)/1000).toFixed(1) + 'k');
   drawShockMarkers(ctx, dims, scenario?.shocks, horizon);
 
   // Zero line
