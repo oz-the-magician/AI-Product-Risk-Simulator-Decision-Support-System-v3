@@ -1,3 +1,4 @@
+import { L } from './i18n.js';
 // Guided tour: one step at a time, the rest of the screen dimmed, the target cut out and outlined.
 // Steps: { target: selector | () => Element, title, body (html), before?: () => void, placement?: 'auto'|'top'|'bottom'|'left'|'right' }
 // Keyboard: → / Enter next, ← back, Esc closes. Focus stays inside the tooltip while the tour is open.
@@ -76,7 +77,9 @@ export function createTour(steps, { onClose } = {}) {
       root.querySelectorAll('.tour-progress i').forEach((d, k) => d.classList.toggle('on', k <= i));
       const backBtn = root.querySelector('.tour-back'), nextBtn = root.querySelector('.tour-next');
       backBtn.disabled = i === 0;
-      nextBtn.textContent = i === steps.length - 1 ? 'Done' : 'Next';
+      nextBtn.textContent = i === steps.length - 1 ? L('Done', 'Готово') : L('Next', 'Дальше');
+      backBtn.textContent = L('Back', 'Назад');
+      root.querySelector('.tour-skip').textContent = L('Skip tour', 'Пропустить тур');
       place();
       nextBtn.focus({ preventScroll: true });
     }));

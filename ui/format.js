@@ -1,3 +1,4 @@
+import { L } from './i18n.js';
 export function fmtMetric(value, unit) {
   if (value === undefined || value === null || isNaN(value)) return '—';
   switch (unit) {
@@ -25,15 +26,15 @@ export function fmtPct(val) {
   return (val * 100).toFixed(1) + '%';
 }
 
-const STATUS_LABEL = { green: 'OK', yellow: 'Watch', red: 'Breach' };
+const STATUS_LABEL = { green: ['OK', 'Норма'], yellow: ['Watch', 'Внимание'], red: ['Breach', 'Нарушение'] };
 
 // A drawn status mark. With a label it reads as a badge; without, a small shape plus screen-reader text.
 // Shape differs per state (dot, ring, diamond) so status never depends on colour alone.
 export function statusEmoji(status, withLabel = false) {
   const s = STATUS_LABEL[status] ? status : 'green';
   return withLabel
-    ? `<span class="st st-${s}"><i aria-hidden="true"></i>${STATUS_LABEL[s]}</span>`
-    : `<span class="st-mark st-${s}" role="img" aria-label="${STATUS_LABEL[s]}"></span>`;
+    ? `<span class="st st-${s}"><i aria-hidden="true"></i>${L(...STATUS_LABEL[s])}</span>`
+    : `<span class="st-mark st-${s}" role="img" aria-label="${L(...STATUS_LABEL[s])}"></span>`;
 }
 
 export function statusColor(status) {

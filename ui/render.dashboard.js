@@ -1,9 +1,10 @@
+import { L, t } from './i18n.js';
 import { METRICS } from '../data/metrics.js';
 import { fmtMetric, fmtPct, statusEmoji, statusColor } from './format.js';
 
 export function renderDashboard(container, states, mcResults) {
   if (!states || states.length === 0) {
-    container.innerHTML = '<p class="empty">Run a simulation first.</p>';
+    container.innerHTML = `<p class="empty">${L('Run a simulation first.', 'Сначала запустите симуляцию.')}</p>`;
     return;
   }
 
@@ -25,18 +26,18 @@ export function renderDashboard(container, states, mcResults) {
     html += `
       <div class="metric-category">
         <div class="cat-header">
-          <span class="cat-name">${cat}</span>
+          <span class="cat-name">${t(cat)}</span>
           ${statusEmoji(catStatus, true)}
         </div>
         <table class="metric-table">
           <thead>
             <tr>
-              <th>Metric</th>
-              <th>Baseline</th>
-              <th>Current</th>
-              <th>Watch at</th>
-              <th>Status</th>
-              ${mcResults ? '<th>P(watch)</th><th>P(breach)</th>' : ''}
+              <th>${L('Metric', 'Метрика')}</th>
+              <th>${L('Baseline', 'База')}</th>
+              <th>${L('Current', 'Сейчас')}</th>
+              <th>${L('Watch at', 'Внимание с')}</th>
+              <th>${L('Status', 'Статус')}</th>
+              ${mcResults ? `<th>${L('P(watch)', 'P(внимание)')}</th><th>${L('P(breach)', 'P(нарушение)')}</th>` : ''}
             </tr>
           </thead>
           <tbody>
@@ -51,8 +52,8 @@ export function renderDashboard(container, states, mcResults) {
       html += `
         <tr class="metric-row status-${status}">
           <td class="metric-name-cell">
-            <span class="metric-name">${m.name}</span>
-            <span class="metric-desc">${m.description}</span>
+            <span class="metric-name">${t(m.name)}</span>
+            <span class="metric-desc">${t(m.description)}</span>
           </td>
           <td class="num">${fmtMetric(m.baseline, m.unit)}</td>
           <td class="metric-current st-text-${status}">${fmtMetric(cur, m.unit)}</td>

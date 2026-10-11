@@ -1,3 +1,4 @@
+import { L, t } from './i18n.js';
 import { icon } from './icons.js';
 import { METRICS } from '../data/metrics.js';
 import { fmtMetric, fmtMoney } from './format.js';
@@ -51,7 +52,7 @@ function drawAxes(ctx, dims, minY, maxY, horizon, label, fmt) {
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.font = '11px "Martian Mono", ui-monospace, monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('d' + day, x, oy + h + 18);
+    ctx.fillText(L('d', 'д') + day, x, oy + h + 18);
   }
 
   // Label
@@ -135,13 +136,13 @@ export function renderTimeline(container, states, mcResults, scenario, selectedM
 
   // Build selector for metrics
   const metricOptions = METRICS.map(m =>
-    `<button type="button" class="metric-pick" data-id="${m.id}" aria-pressed="${selectedMetrics.includes(m.id)}">${icon('check', 'ic-sm')}${m.name}</button>`
+    `<button type="button" class="metric-pick" data-id="${m.id}" aria-pressed="${selectedMetrics.includes(m.id)}">${icon('check', 'ic-sm')}${t(m.name)}</button>`
   ).join('');
 
   container.innerHTML = `
     <div class="timeline-controls">
       <div class="metric-picker" role="group" aria-labelledby="metric-picker-label">
-        <span id="metric-picker-label" class="metric-picker-label">Key metrics</span>
+        <span id="metric-picker-label" class="metric-picker-label">${L('Key metrics', 'Ключевые метрики')}</span>
         ${metricOptions}
       </div>
     </div>
@@ -181,7 +182,7 @@ function drawRiskChart(canvas, states, mcResults, horizon, scenario) {
   const maxY = Math.min(100, Math.max(20, Math.max(...allVals) * 1.1));
 
   const dims = getChartDims(canvas);
-  drawAxes(ctx, dims, minY, maxY, horizon, 'Risk score (0 to 100)', v => v.toFixed(0));
+  drawAxes(ctx, dims, minY, maxY, horizon, L('Risk score (0 to 100)', 'Оценка риска (от 0 до 100)'), v => v.toFixed(0));
   drawShockMarkers(ctx, dims, scenario?.shocks, horizon);
 
   if (p10 && p90) drawBand(ctx, dims, p10, p90, minY, maxY, 'rgb(240,89,91)');
@@ -201,7 +202,7 @@ function drawNetChart(canvas, states, mcResults, horizon, scenario) {
   const maxY = Math.max(0, Math.max(...allVals) * 1.1);
 
   const dims = getChartDims(canvas);
-  drawAxes(ctx, dims, minY, maxY, horizon, 'Net Revenue ($/day)', v => '$' + (v/1000).toFixed(1) + 'k');
+  drawAxes(ctx, dims, minY, maxY, horizon, L('Net revenue ($/day)', 'Чистая выручка ($/день)'), v => '$' + (v/1000).toFixed(1) + 'k');
   drawShockMarkers(ctx, dims, scenario?.shocks, horizon);
 
   // Zero line
@@ -235,7 +236,7 @@ function drawMetricChart(canvas, states, metricId, horizon, scenario) {
   const maxY = Math.max(...allVals) + pad;
 
   const dims = getChartDims(canvas);
-  drawAxes(ctx, dims, minY, maxY, horizon, m.name, v => fmtMetric(v, m.unit));
+  drawAxes(ctx, dims, minY, maxY, horizon, t(m.name), v => fmtMetric(v, m.unit));
   drawShockMarkers(ctx, dims, scenario?.shocks?.filter(s => s.metricId === metricId), horizon);
 
   // Guardrail lines

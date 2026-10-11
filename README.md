@@ -1,6 +1,8 @@
 # AI Risk Simulator v3
 
-A static web application for simulating AI Product Safety decisions over time.
+A static web application for simulating AI Product Safety decisions over time. Interface in English and Russian.
+
+_Симулятор решений по безопасности AI-продукта. Интерфейс на английском и русском, переключатель EN / RU в шапке._
 
 **[Open the simulator →](https://oz-the-magician.github.io/AI-Product-Risk-Simulator-Decision-Support-System-v3/)**
 
@@ -21,11 +23,13 @@ A static web application for simulating AI Product Safety decisions over time.
 - **Trade-off map** — average risk vs total net for every preset, every single decision and bundles A/B,
   with the Pareto frontier; click any dot to load it into A or B
 - **Guided tour** — 11 steps with the rest of the screen dimmed and the current control spotlighted; starts on the
-  first visit, replay from **? Tour** in the header (keyboard: → next, ← back, Esc to leave)
+  first visit, replay from **Tour** in the header (keyboard: → next, ← back, Esc to leave)
 - **Presets** — ready-made bundles per scenario in the empty sidebar
 - **6 tabs**: Dashboard / Compare A/B / Trade-offs / Timeline / Sensitivity / Model
 - **Decision Bundle** — add/remove decisions, set intensity sliders
 - **Export/Import** — JSON config persistence via localStorage + download
+- **English and Russian** — EN / RU switch in the header; the choice is remembered, the first visit follows the browser language
+- **Look** — smoked glass over a slow field of light; the risk orb next to the readings changes shape and colour with the risk band (see `DESIGN.md`)
 
 ## How to Run
 
