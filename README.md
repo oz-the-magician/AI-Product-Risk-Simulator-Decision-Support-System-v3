@@ -2,7 +2,7 @@
 
 A static web application for simulating AI Product Safety decisions over time.
 
-**[Open the simulator →](https://oz-the-magician.github.io/ai-product-risk-simulator-decision-support-system-v3/)**
+**[Open the simulator →](https://oz-the-magician.github.io/AI-Product-Risk-Simulator-Decision-Support-System-v3/)**
 
 > The model is illustrative: metrics, guardrails and coefficients are made-up but plausible
 > numbers for a consumer AI product. It shows how safety, product and money trade off —
