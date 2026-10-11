@@ -1,3 +1,4 @@
+import { icon } from './icons.js';
 import { METRICS } from '../data/metrics.js';
 import { CAUSAL_EDGES } from '../engine/transitions.js';
 import { ADJUST_SPEED } from '../engine/simulator.js';
@@ -11,10 +12,10 @@ export function renderModel(container) {
     <tr>
       <td><code>${m.id}</code></td>
       <td>${m.name}</td>
-      <td class="badge badge-${m.category.toLowerCase()}">${m.category}</td>
-      <td>${m.better === 'low' ? '↓ Lower' : '↑ Higher'}</td>
+      <td><span class="badge badge-${m.category.toLowerCase()}">${m.category}</span></td>
+      <td>${m.better === 'low' ? icon('arrowDown', 'ic-sm') + ' Lower' : icon('arrowUp', 'ic-sm') + ' Higher'}</td>
       <td>${m.baseline} ${m.unit}</td>
-      <td>🟡 ${m.guardrails.yellow} | 🔴 ${m.guardrails.red ?? '—'}</td>
+      <td>watch ${m.guardrails.yellow} · breach ${m.guardrails.red ?? '—'}</td>
       <td>${m.severity}/5</td>
     </tr>
   `).join('');
@@ -22,7 +23,7 @@ export function renderModel(container) {
   const edgeRows = CAUSAL_EDGES.map(e => `
     <tr>
       <td><code>${e.from}</code></td>
-      <td>→</td>
+      <td aria-label="drives">${icon('arrowRight', 'ic-sm')}</td>
       <td><code>${e.to}</code></td>
       <td class="${e.k > 0 ? 'pos-k' : 'neg-k'}">${e.k > 0 ? '+' : ''}${e.k}</td>
     </tr>
@@ -68,7 +69,7 @@ Each decision costs amountPerDay × intensity, subtracted from Net every day.</p
     <div class="model-section">
       <h3>Risk Score Formula</h3>
       <pre class="formula">stress(m) = 0 at the green threshold … 1 at the red threshold (capped at 1.5)
-StressIndex = ( Σ severity × stress³ / Σ severity )^(1/3)       — the worst metrics dominate
+StressIndex = ( Σ severity × stress³ / Σ severity )^(1/3)       (the worst metrics dominate)
 RedPenalty  = Σ over red metrics of ${RISK_CAL.redPenalty} × severity/5 × riskSensitivity
 RiskScore   = clamp(100 × (StressIndex − ${RISK_CAL.floor}) / ${RISK_CAL.span} + RedPenalty, 0, 100)
 Calibration: baseline ≈ 25 · every metric on its yellow line ≈ 58 · everything at red = 100</pre>
@@ -92,10 +93,10 @@ Net(t)          = Revenue(t) − Cost(t)</pre>
     <div class="model-section">
       <h3>Monte Carlo</h3>
       <pre class="formula">Each run samples:
-  • today's metric values — priors centred on the baselines (lognormal for rates)
-  • causal edge strengths — normal priors, direction never flips
-  • how well each decision works — ×lognormal(σ = ${EFFECT_UNCERTAINTY})
-  • size of scenario shocks — ×lognormal(σ = ${SHOCK_UNCERTAINTY})
+  • today's metric values: priors centred on the baselines (lognormal for rates)
+  • causal edge strengths: normal priors, direction never flips
+  • how well each decision works: ×lognormal(σ = ${EFFECT_UNCERTAINTY})
+  • size of scenario shocks: ×lognormal(σ = ${SHOCK_UNCERTAINTY})
 Risk is scored on the change since day 0 of the run, so the band shows how uncertain the
 consequences of the decisions are; money uses the actual sampled values.
 The p50 line therefore matches the deterministic simulation.

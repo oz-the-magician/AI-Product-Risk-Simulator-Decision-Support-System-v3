@@ -1,3 +1,4 @@
+import { icon } from './icons.js';
 // "What moved the risk" — a waterfall from the quiet product to the current bundle.
 import { METRICS } from '../data/metrics.js';
 import { esc, showTip, hideTip } from './viz.js';
@@ -52,7 +53,7 @@ export function renderExplain(container, ex, horizon) {
     <section class="explain card-block" aria-labelledby="explain-title">
       <div class="block-head">
         <h3 id="explain-title">What moved the risk</h3>
-        <span class="block-hint">Each decision's share of the joint effect (Shapley values — the steps add up exactly).</span>
+        <span class="block-hint">Each decision's share of the joint effect (Shapley values: the steps add up exactly).</span>
       </div>
       <p class="explain-headline">${headline(ex, horizon)}</p>
       <div class="wf" role="table" aria-label="Risk breakdown">
@@ -70,7 +71,7 @@ export function renderExplain(container, ex, horizon) {
               ${isStep ? `<span class="wf-axis"></span><span class="wf-fill ${dir}" style="${dir === 'up' ? 'left:50%' : `left:${50 - pct}%`};width:${Math.max(pct, 0.6)}%"></span>` : ''}
             </div>
             <div class="wf-value ${isStep ? dir : ''}" role="cell">
-              ${isStep ? `<span class="wf-arrow" aria-hidden="true">${r.value > 0.05 ? '▲' : r.value < -0.05 ? '▼' : '·'}</span>${signed(r.value)}` : r.value.toFixed(1)}
+              ${isStep ? `<span class="wf-arrow" aria-hidden="true">${r.value > 0.05 ? icon('caretUp', 'ic-sm') : r.value < -0.05 ? icon('caretDown', 'ic-sm') : ''}</span>${signed(r.value)}` : r.value.toFixed(1)}
             </div>
             <div class="wf-note" role="cell">${esc(r.note || '')}</div>
           </div>`;

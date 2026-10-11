@@ -8,6 +8,7 @@ import { renderTimeline } from './ui/render.timeline.js';
 import { renderSensitivity } from './ui/render.sensitivity.js';
 import { renderModel } from './ui/render.model.js';
 import { fmtMoney, fmtPct } from './ui/format.js';
+import { icon } from './ui/icons.js';
 import { PRESETS, presetsFor, resolveBundle } from './data/presets.js';
 import { summarize, explainRisk, tradeoffPoints } from './engine/analysis.js';
 import { renderExplain } from './ui/render.explain.js';
@@ -107,6 +108,12 @@ function updateSummaryChips() {
 
   document.getElementById('chip-risk').innerHTML = `<span class="chip-label">Risk · day ${appState.horizonDays}</span><span class="chip-value">${riskVal.toFixed(1)}</span>`;
   document.getElementById('chip-risk').className = `chip ${riskColor}`;
+  const orb = document.getElementById('risk-orb');
+  if (orb) {
+    orb.dataset.band = riskVal > 60 ? 'high' : riskVal > 30 ? 'mid' : 'low';
+    orb.style.setProperty('--risk', Math.max(0, Math.min(1, riskVal / 100)).toFixed(3));
+    document.getElementById('orb-value').textContent = Math.round(riskVal);
+  }
   document.getElementById('chip-tail').innerHTML = `<span class="chip-label">P(SEV) · day ${appState.horizonDays}</span><span class="chip-value">${fmtPct(tailVal)}</span>`;
   document.getElementById('chip-tail').className = `chip ${tailColor}`;
   document.getElementById('chip-net').innerHTML = `<span class="chip-label">Net/day</span><span class="chip-value">$${fmtMoney(netVal)}</span>`;
@@ -318,12 +325,12 @@ const TOUR_STEPS = [
     target: null,
     title: 'Keep an AI product safe without killing growth',
     body: `<p>This simulator lets you try safety decisions before you commit to them: what they do to risk, to users and to money over the next weeks.</p>
-           <p class="tour-note">The model is illustrative — plausible, made-up numbers for a consumer AI product. About a minute; <kbd>→</kbd> next, <kbd>Esc</kbd> to leave.</p>`
+           <p class="tour-note">The model is illustrative: plausible, made-up numbers for a consumer AI product. About a minute; <kbd>→</kbd> next, <kbd>Esc</kbd> to leave.</p>`
   },
   {
     target: () => document.getElementById('scenario-select').closest('.control-group'),
     title: '1 · Pick a scenario',
-    body: `<p>A calm launch, an aggressive growth push or a safety crisis. Each one comes with its own events — traffic spikes, an abuse wave, a viral incident.</p>
+    body: `<p>A calm launch, an aggressive growth push or a safety crisis. Each one comes with its own events: traffic spikes, an abuse wave, a viral incident.</p>
            <p>Next to it, <b>Horizon</b> sets how many days are simulated.</p>`
   },
   {
@@ -344,27 +351,27 @@ const TOUR_STEPS = [
     target: '.slot-switch',
     title: '4 · Build an alternative',
     body: `<p>You have two bundles, <span class="slot-tag slot-a">A</span> and <span class="slot-tag slot-b">B</span>. This switch picks which one the sidebar edits.</p>
-           <p>Typical move: build A, switch to B, make one different choice — then compare.</p>`,
+           <p>Typical move: build A, switch to B, make one different choice, then compare.</p>`,
     placement: 'right'
   },
   {
     target: '.summary-chips',
     title: '5 · Headline numbers',
-    body: `<p>Risk score (0–100), the chance of a severe incident, money per day and the worst breach probability — for the bundle you're editing, on the last simulated day.</p>
+    body: `<p>Risk score (0 to 100), the chance of a severe incident, money per day and the worst breach probability, for the bundle you're editing, on the last simulated day.</p>
            <p>Everything recalculates the moment you change something.</p>`
   },
   {
     target: '#dash-explain',
     before: goTab('dashboard'),
     title: '6 · What moved the risk',
-    body: `<p>From a quiet product, through the scenario's events, to each of your decisions — and which metrics carried each effect.</p>
+    body: `<p>From a quiet product, through the scenario's events, to each of your decisions, and which metrics carried each effect.</p>
            <p>The steps add up exactly, so you can see which decision is pulling its weight.</p>`
   },
   {
     target: () => document.querySelector('#tab-compare .cmp-verdict') || document.getElementById('tab-compare'),
     before: goTab('compare'),
     title: '7 · Compare A and B',
-    body: `<p>The two bundles side by side over the whole horizon. This line is the verdict in plain words — including <b>how much money each point of risk costs</b>.</p>
+    body: `<p>The two bundles side by side over the whole horizon. This line is the verdict in plain words, including <b>how much money each point of risk costs</b>.</p>
            <p>Below it: the numbers, both runs on one chart, and the metrics that end up differently.</p>`
   },
   {
@@ -379,7 +386,7 @@ const TOUR_STEPS = [
   {
     target: '#mc-btn',
     title: '9 · Check how sure you can be',
-    body: `<p><b>Run MC</b> simulates hundreds of plausible versions of the future — decisions working better or worse, metrics starting a bit off — and draws uncertainty bands on the Timeline.</p>
+    body: `<p><b>Run MC</b> simulates hundreds of plausible versions of the future (decisions working better or worse, metrics starting a bit off) and draws uncertainty bands on the Timeline.</p>
            <p>Bands reset whenever you change a bundle, so they always describe what you see.</p>`
   },
   {
@@ -410,7 +417,7 @@ function renderDecisionLibrary() {
       html += `
         <div class="dec-card ${inBundle ? 'in-bundle' : ''}" data-id="${d.id}">
           <span class="dec-name">${d.name}</span>
-          <button class="dec-add-btn" data-id="${d.id}">${inBundle ? '✓' : '+'}</button>
+          <button class="dec-add-btn" data-id="${d.id}" aria-label="${inBundle ? 'Remove ' + d.name + ' from' : 'Add ' + d.name + ' to'} bundle ${appState.activeSlot}" aria-pressed="${inBundle}">${icon(inBundle ? 'check' : 'plus')}</button>
         </div>
       `;
     }
@@ -443,7 +450,7 @@ function renderBundle() {
     const presets = presetsFor(appState.scenarioId);
     bundleEl.innerHTML = `
       <div class="bundle-empty">
-        <p class="empty-bundle">Bundle ${appState.activeSlot} is empty. Start from a ready-made bundle for <b>${esc(getScenario().name)}</b>, or add decisions with <b>+</b> above.</p>
+        <p class="empty-bundle">Bundle ${appState.activeSlot} is empty. Start from a ready-made bundle for <b>${esc(getScenario().name)}</b>, or add decisions from the library above.</p>
         ${presets.map(p => `
           <button class="preset-card" data-preset="${p.id}">
             <span class="preset-name">${esc(p.name)}</span>
@@ -462,7 +469,7 @@ function renderBundle() {
       <div class="bundle-item" data-id="${d.id}">
         <div class="bundle-header">
           <span class="bundle-name">${d.name}</span>
-          <button class="bundle-remove" data-id="${d.id}">×</button>
+          <button class="bundle-remove" data-id="${d.id}" aria-label="Remove ${d.name}">${icon('x')}</button>
         </div>
         <div class="bundle-meta">
           <span class="badge-cost">$${Math.round(totalCost)}/day</span>
@@ -588,6 +595,8 @@ function init() {
     if (e.target.files[0]) importConfig(e.target.files[0]);
   });
 
+  // Canvas charts draw text once; redraw when the self-hosted faces finish loading.
+  document.fonts?.ready.then(() => renderActiveTab());
   initTabs(tab => {
     appState.activeTab = tab;
     if (tab === 'model') renderModel(document.getElementById('tab-model'));

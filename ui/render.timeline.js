@@ -1,3 +1,4 @@
+import { icon } from './icons.js';
 import { METRICS } from '../data/metrics.js';
 import { fmtMetric, fmtMoney } from './format.js';
 
@@ -21,7 +22,7 @@ function getChartDims(canvas) {
 function drawAxes(ctx, dims, minY, maxY, horizon, label, fmt) {
   const { w, h, ox, oy } = dims;
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
   ctx.lineWidth = 1;
 
   // Grid
@@ -34,7 +35,7 @@ function drawAxes(ctx, dims, minY, maxY, horizon, label, fmt) {
     ctx.lineTo(ox + w, y);
     ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.font = '11px "Martian Mono", ui-monospace, monospace';
     ctx.textAlign = 'right';
     ctx.fillText(fmt ? fmt(val) : val.toFixed(1), ox - 6, y + 4);
   }
@@ -48,15 +49,15 @@ function drawAxes(ctx, dims, minY, maxY, horizon, label, fmt) {
     ctx.lineTo(x, oy + h);
     ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.font = '11px "Martian Mono", ui-monospace, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('d' + day, x, oy + h + 18);
   }
 
   // Label
   if (label) {
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = '12px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '600 12.5px "Sora", system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(label, ox + w / 2, oy - 10);
   }
@@ -108,7 +109,7 @@ function drawShockMarkers(ctx, dims, shocks, horizon) {
   ctx.save();
   for (const shock of (shocks || [])) {
     const x = ox + (shock.day / horizon) * w;
-    ctx.strokeStyle = 'rgba(255, 200, 50, 0.7)';
+    ctx.strokeStyle = 'rgba(242, 182, 64, 0.6)';
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
@@ -116,8 +117,8 @@ function drawShockMarkers(ctx, dims, shocks, horizon) {
     ctx.lineTo(x, oy + h);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(255, 200, 50, 0.9)';
-    ctx.font = '9px monospace';
+    ctx.fillStyle = 'rgba(242, 182, 64, 0.95)';
+    ctx.font = '10px "Martian Mono", ui-monospace, monospace';
     ctx.textAlign = 'center';
     ctx.fillText('⚡', x, oy + 8);
   }
@@ -134,14 +135,15 @@ export function renderTimeline(container, states, mcResults, scenario, selectedM
 
   // Build selector for metrics
   const metricOptions = METRICS.map(m =>
-    `<option value="${m.id}" ${selectedMetrics.includes(m.id) ? 'selected' : ''}>${m.name}</option>`
+    `<button type="button" class="metric-pick" data-id="${m.id}" aria-pressed="${selectedMetrics.includes(m.id)}">${icon('check', 'ic-sm')}${m.name}</button>`
   ).join('');
 
   container.innerHTML = `
     <div class="timeline-controls">
-      <label>Key Metrics:
-        <select id="metric-select" multiple size="5" style="min-width:220px">${metricOptions}</select>
-      </label>
+      <div class="metric-picker" role="group" aria-labelledby="metric-picker-label">
+        <span id="metric-picker-label" class="metric-picker-label">Key metrics</span>
+        ${metricOptions}
+      </div>
     </div>
     <div class="charts-grid">
       <div class="chart-wrap"><canvas id="chart-risk" width="560" height="240"></canvas></div>
@@ -150,10 +152,12 @@ export function renderTimeline(container, states, mcResults, scenario, selectedM
     </div>
   `;
 
-  document.getElementById('metric-select').addEventListener('change', e => {
-    const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+  container.querySelectorAll('.metric-pick').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    const selected = selectedMetrics.includes(id) ? selectedMetrics.filter(x => x !== id) : [...selectedMetrics, id];
     renderTimeline(container, states, mcResults, scenario, selected);
-  });
+    container.querySelector(`.metric-pick[data-id="${id}"]`)?.focus();
+  }));
 
   // Risk chart
   drawRiskChart(document.getElementById('chart-risk'), states, mcResults, horizon, scenario);
@@ -177,12 +181,12 @@ function drawRiskChart(canvas, states, mcResults, horizon, scenario) {
   const maxY = Math.min(100, Math.max(20, Math.max(...allVals) * 1.1));
 
   const dims = getChartDims(canvas);
-  drawAxes(ctx, dims, minY, maxY, horizon, 'Risk Score (0–100)', v => v.toFixed(0));
+  drawAxes(ctx, dims, minY, maxY, horizon, 'Risk score (0 to 100)', v => v.toFixed(0));
   drawShockMarkers(ctx, dims, scenario?.shocks, horizon);
 
-  if (p10 && p90) drawBand(ctx, dims, p10, p90, minY, maxY, 'rgb(255,95,95)');
-  if (p50) drawLine(ctx, dims, p50, minY, maxY, 'rgba(255,150,150,0.8)', 1.5);
-  drawLine(ctx, dims, det, minY, maxY, 'rgb(255,80,80)', 2.5);
+  if (p10 && p90) drawBand(ctx, dims, p10, p90, minY, maxY, 'rgb(240,89,91)');
+  if (p50) drawLine(ctx, dims, p50, minY, maxY, 'rgba(255,160,160,0.8)', 1.5);
+  drawLine(ctx, dims, det, minY, maxY, 'rgb(240,89,91)', 2.5);
 }
 
 function drawNetChart(canvas, states, mcResults, horizon, scenario) {
@@ -214,9 +218,9 @@ function drawNetChart(canvas, states, mcResults, horizon, scenario) {
     ctx.setLineDash([]);
   }
 
-  if (p10 && p90) drawBand(ctx, dims, p10, p90, minY, maxY, 'rgb(80,200,120)');
-  if (p50) drawLine(ctx, dims, p50, minY, maxY, 'rgba(130,220,160,0.8)', 1.5);
-  drawLine(ctx, dims, det, minY, maxY, 'rgb(80,220,130)', 2.5);
+  if (p10 && p90) drawBand(ctx, dims, p10, p90, minY, maxY, 'rgb(75,208,142)');
+  if (p50) drawLine(ctx, dims, p50, minY, maxY, 'rgba(150,230,190,0.8)', 1.5);
+  drawLine(ctx, dims, det, minY, maxY, 'rgb(75,208,142)', 2.5);
 }
 
 function drawMetricChart(canvas, states, metricId, horizon, scenario) {
@@ -236,7 +240,7 @@ function drawMetricChart(canvas, states, metricId, horizon, scenario) {
 
   // Guardrail lines
   const { w, h, ox, oy } = dims;
-  for (const [level, color] of [['yellow', '#ffd700'], ['red', '#ff4444']]) {
+  for (const [level, color] of [['yellow', '#F2B640'], ['red', '#F0595B']]) {
     const gVal = m.guardrails[level];
     if (gVal !== undefined && gVal >= minY && gVal <= maxY) {
       const gy = oy + h - ((gVal - minY) / (maxY - minY)) * h;
@@ -253,6 +257,6 @@ function drawMetricChart(canvas, states, metricId, horizon, scenario) {
     }
   }
 
-  const lineColor = m.better === 'low' ? 'rgb(80,180,255)' : 'rgb(130,220,100)';
+  const lineColor = m.better === 'low' ? 'rgb(169,199,255)' : 'rgb(127,227,194)';
   drawLine(ctx, dims, det, minY, maxY, lineColor, 2);
 }

@@ -25,9 +25,8 @@ export function renderDashboard(container, states, mcResults) {
     html += `
       <div class="metric-category">
         <div class="cat-header">
-          <span class="cat-status-dot" style="background:${statusColor(catStatus)}"></span>
           <span class="cat-name">${cat}</span>
-          <span class="cat-badge" style="color:${statusColor(catStatus)}">${statusEmoji(catStatus)}</span>
+          ${statusEmoji(catStatus, true)}
         </div>
         <table class="metric-table">
           <thead>
@@ -35,9 +34,9 @@ export function renderDashboard(container, states, mcResults) {
               <th>Metric</th>
               <th>Baseline</th>
               <th>Current</th>
-              <th>Guardrail 🟡</th>
+              <th>Watch at</th>
               <th>Status</th>
-              ${mcResults ? '<th>P(breach yellow)</th><th>P(breach red)</th>' : ''}
+              ${mcResults ? '<th>P(watch)</th><th>P(breach)</th>' : ''}
             </tr>
           </thead>
           <tbody>
@@ -55,10 +54,10 @@ export function renderDashboard(container, states, mcResults) {
             <span class="metric-name">${m.name}</span>
             <span class="metric-desc">${m.description}</span>
           </td>
-          <td>${fmtMetric(m.baseline, m.unit)}</td>
-          <td class="metric-current" style="color:${statusColor(status)}">${fmtMetric(cur, m.unit)}</td>
-          <td>${fmtMetric(guardrailVal, m.unit)}</td>
-          <td>${statusEmoji(status)}</td>
+          <td class="num">${fmtMetric(m.baseline, m.unit)}</td>
+          <td class="metric-current st-text-${status}">${fmtMetric(cur, m.unit)}</td>
+          <td class="num">${fmtMetric(guardrailVal, m.unit)}</td>
+          <td>${statusEmoji(status, true)}</td>
           ${mcResults ? `
             <td class="breach-prob">${bp ? fmtPct(bp.yellow) : '—'}</td>
             <td class="breach-prob ${bp && bp.red > 0.3 ? 'high-risk' : ''}">${bp ? fmtPct(bp.red) : '—'}</td>

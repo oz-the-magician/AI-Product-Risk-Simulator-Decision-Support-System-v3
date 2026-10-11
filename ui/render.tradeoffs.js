@@ -16,11 +16,11 @@ export function renderTradeoffs(container, { points, horizon, onLoad }) {
     <div class="tip-head">${esc(p.label)}</div>
     <div class="tip-row">Average risk<b>${p.avgRisk.toFixed(1)}</b></div>
     <div class="tip-row">Total net, ${horizon} d<b>${money(p.totalNet)}</b></div>
-    <div class="tip-foot">${p.onFrontier ? 'Efficient — nothing is both safer and more profitable' : 'Dominated — another option is safer and earns more'}${p.bundle?.length && p.kind !== 'A' && p.kind !== 'B' ? ' · click to load it' : ''}</div>`;
+    <div class="tip-foot">${p.onFrontier ? 'Efficient: nothing is both safer and more profitable' : 'Dominated: another option is safer and earns more'}${p.bundle?.length && p.kind !== 'A' && p.kind !== 'B' ? ' · click to load it' : ''}</div>`;
 
   container.innerHTML = `
     <div class="block-head">
-      <h3>Risk ↔ money</h3>
+      <h3>Risk against money</h3>
       <span class="block-hint">Each dot is a decision bundle simulated for ${horizon} days in this scenario. Left = safer, up = more money.</span>
     </div>
     <div class="to-layout">
@@ -41,7 +41,7 @@ export function renderTradeoffs(container, { points, horizon, onLoad }) {
       <thead><tr><th scope="col">Option</th><th scope="col">Average risk</th><th scope="col">Total net</th><th scope="col"></th></tr></thead>
       <tbody>${front.map(p => `
         <tr><th scope="row">${esc(p.label)}</th><td>${p.avgRisk.toFixed(1)}</td><td>${money(p.totalNet)}</td>
-        <td>${p.bundle?.length && p.kind !== 'A' && p.kind !== 'B' ? `<button class="btn btn-ghost btn-sm" data-load="${points.indexOf(p)}" data-slot="A">→ A</button> <button class="btn btn-ghost btn-sm" data-load="${points.indexOf(p)}" data-slot="B">→ B</button>` : ''}</td></tr>`).join('')}
+        <td>${p.bundle?.length && p.kind !== 'A' && p.kind !== 'B' ? `<button class="btn btn-ghost btn-sm" data-load="${points.indexOf(p)}" data-slot="A">Load as A</button> <button class="btn btn-ghost btn-sm" data-load="${points.indexOf(p)}" data-slot="B">Load as B</button>` : ''}</td></tr>`).join('')}
       </tbody>
     </table>`;
 

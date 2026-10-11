@@ -82,14 +82,14 @@ function drawOTACurves(container, decisionId, scenario, bundle, horizonDays) {
     const maxY = Math.max(...values) * 1.05;
 
     // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 5; i++) {
       const y = oy + h - (i / 5) * h;
       const val = minY + (i / 5) * (maxY - minY);
       ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox + w, y); ctx.stroke();
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.font = '11px "Martian Mono", ui-monospace, monospace';
       ctx.textAlign = 'right';
       ctx.fillText(axisLabel(val, maxY - minY), ox - 6, y + 4);
     }
@@ -97,15 +97,15 @@ function drawOTACurves(container, decisionId, scenario, bundle, horizonDays) {
       const x = ox + (i / steps) * w;
       ctx.beginPath(); ctx.moveTo(x, oy); ctx.lineTo(x, oy + h); ctx.stroke();
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      ctx.font = '11px "JetBrains Mono", monospace';
+      ctx.font = '11px "Martian Mono", ui-monospace, monospace';
       ctx.textAlign = 'center';
       ctx.fillText((i/10).toFixed(1), x, oy + h + 16);
     }
 
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '600 12.5px "Sora", system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Intensity →', ox + w / 2, oy + h + 34);
+    ctx.fillText('Intensity', ox + w / 2, oy + h + 34);
     ctx.fillText(label, ox + w / 2, oy - 10);
 
     // Curve
@@ -167,8 +167,8 @@ function renderTornado(mcResults) {
         </div>
       `).join('')}
       <div class="tornado-legend">
-        <span class="leg-item"><span class="leg-dot" style="background:#ffd700"></span> Yellow breach</span>
-        <span class="leg-item"><span class="leg-dot" style="background:#ff4444"></span> Red breach</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#F2B640"></span> Yellow breach</span>
+        <span class="leg-item"><span class="leg-dot" style="background:#F0595B"></span> Red breach</span>
       </div>
     </div>
   `;
