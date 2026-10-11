@@ -13,7 +13,15 @@ A static web application for simulating AI Product Safety decisions over time.
 - **Time-based simulation** — step-by-step day simulation with lag/decay effects
 - **Monte Carlo** — 100–2000 runs in a Web Worker with p10/p50/p90 bands (cancellable)
 - **Causal graph** — metrics influence each other via configurable edge coefficients
-- **4 tabs**: Dashboard / Timeline / Sensitivity / Model
+- **Two bundles, A and B** — build two alternative decision bundles; the sidebar switch picks which one you edit
+- **Compare A/B** — side-by-side outcomes over the horizon (average risk, P(SEV), red-metric days, total net, cost),
+  a plain-language verdict with the price of each risk point, overlaid risk and net charts, metrics that end differently
+- **What moved the risk** — a waterfall on the dashboard: quiet product → scenario events → each decision's
+  share (Shapley values, so the steps add up exactly), with the metrics that carry each effect
+- **Trade-off map** — average risk vs total net for every preset, every single decision and bundles A/B,
+  with the Pareto frontier; click any dot to load it into A or B
+- **Presets & onboarding** — ready-made bundles per scenario in the empty sidebar, a short how-to that can be dismissed
+- **6 tabs**: Dashboard / Compare A/B / Trade-offs / Timeline / Sensitivity / Model
 - **Decision Bundle** — add/remove decisions, set intensity sliders
 - **Export/Import** — JSON config persistence via localStorage + download
 
@@ -63,6 +71,7 @@ no scenario saturates, and the Monte Carlo median matches the deterministic run.
   decisions.js       — 15 decision definitions  
   scenarios.js       — 3 scenarios (Balanced, Growth Push, Crisis)
   priors.js          — uncertainty distributions for Monte Carlo
+  presets.js         — ready-made decision bundles per scenario
 
 /engine/
   state.js           — initial state factory
@@ -74,9 +83,11 @@ no scenario saturates, and the Monte Carlo median matches the deterministic run.
   montecarlo.worker.js — Web Worker: runs Monte Carlo in chunks, supports Cancel
   rng.js             — seedable RNG and samplers (normal, lognormal, triangular)
   units.js           — relative vs absolute effects, metric bounds
+  analysis.js        — summaries, risk explanation (Shapley), Pareto frontier, trade-off points
 
 /tests/
   engine.test.mjs    — model sanity tests (node --test)
+  analysis.test.mjs  — explanation adds up, frontier is correct, presets are valid
 
 /ui/
   tabs.js            — tab switching
@@ -84,6 +95,10 @@ no scenario saturates, and the Monte Carlo median matches the deterministic run.
   render.timeline.js  — canvas charts (risk, net, per-metric)
   render.sensitivity.js — OAT curves + tornado chart
   render.model.js    — model transparency (metrics, edges, formulas)
+  render.explain.js  — "What moved the risk" waterfall
+  render.compare.js  — Compare A/B tab
+  render.tradeoffs.js — Trade-offs tab (scatter + frontier)
+  viz.js             — small SVG chart kit with hover tooltips
   components.js      — reusable UI helpers
   format.js          — number formatters
 ```

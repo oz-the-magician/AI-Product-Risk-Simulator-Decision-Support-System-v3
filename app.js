@@ -8,20 +8,36 @@ import { renderTimeline } from './ui/render.timeline.js';
 import { renderSensitivity } from './ui/render.sensitivity.js';
 import { renderModel } from './ui/render.model.js';
 import { fmtMoney, fmtPct } from './ui/format.js';
+import { PRESETS, presetsFor, resolveBundle } from './data/presets.js';
+import { summarize, explainRisk, tradeoffPoints } from './engine/analysis.js';
+import { renderExplain } from './ui/render.explain.js';
+import { renderCompare } from './ui/render.compare.js';
+import { renderTradeoffs } from './ui/render.tradeoffs.js';
+import { esc } from './ui/viz.js';
 
 // ── State ───────────────────────────────────────────────────────────
 const appState = {
   scenarioId: 'balanced_launch',
   horizonDays: 60,
   mcRuns: 300,
-  bundle: [],          // [{ decision, intensity }]
+  bundles: { A: [], B: [] },   // two decision bundles to compare: [{ decision, intensity }]
+  activeSlot: 'A',             // the one the sidebar edits and the other tabs show
+  get bundle() { return this.bundles[this.activeSlot]; },
+  set bundle(v) { this.bundles[this.activeSlot] = v; },
   selectedMetrics: ['incident_rate', 'abuse_rate', 'retention', 'dau'],
   activeTab: 'dashboard',
   simulationStates: null,
   mcResults: null,
   mcWorker: null,
   mcRunning: false,
+  introDismissed: false,
 };
+
+const toStored = b => b.map(x => ({ decisionId: x.decision.id, intensity: x.intensity }));
+const fromStored = arr => (arr || []).map(b => {
+  const decision = DECISIONS.find(d => d.id === b.decisionId);
+  return decision ? { decision, intensity: b.intensity } : null;
+}).filter(Boolean);
 
 function loadFromStorage() {
   try {
@@ -32,12 +48,14 @@ function loadFromStorage() {
     if (data.horizonDays) appState.horizonDays = data.horizonDays;
     if (data.mcRuns) appState.mcRuns = data.mcRuns;
     if (data.selectedMetrics) appState.selectedMetrics = data.selectedMetrics;
-    if (data.bundle) {
-      appState.bundle = data.bundle.map(b => {
-        const decision = DECISIONS.find(d => d.id === b.decisionId);
-        return decision ? { decision, intensity: b.intensity } : null;
-      }).filter(Boolean);
+    if (data.bundles) {
+      appState.bundles.A = fromStored(data.bundles.A);
+      appState.bundles.B = fromStored(data.bundles.B);
+    } else if (data.bundle) {
+      appState.bundles.A = fromStored(data.bundle);   // older saves had one bundle
     }
+    if (data.activeSlot === 'B') appState.activeSlot = 'B';
+    appState.introDismissed = !!data.introDismissed;
   } catch(e) {}
 }
 
@@ -48,7 +66,9 @@ function saveToStorage() {
       horizonDays: appState.horizonDays,
       mcRuns: appState.mcRuns,
       selectedMetrics: appState.selectedMetrics,
-      bundle: appState.bundle.map(b => ({ decisionId: b.decision.id, intensity: b.intensity }))
+      bundles: { A: toStored(appState.bundles.A), B: toStored(appState.bundles.B) },
+      activeSlot: appState.activeSlot,
+      introDismissed: appState.introDismissed
     }));
   } catch(e) {}
 }
@@ -84,9 +104,9 @@ function updateSummaryChips() {
   const tailColor = tailVal > 0.5 ? 'chip-red' : tailVal > 0.2 ? 'chip-yellow' : 'chip-green';
   const netColor  = netVal > 0 ? 'chip-green' : 'chip-red';
 
-  document.getElementById('chip-risk').innerHTML = `<span class="chip-label">Risk Score</span><span class="chip-value">${riskVal.toFixed(1)}</span>`;
+  document.getElementById('chip-risk').innerHTML = `<span class="chip-label">Risk · day ${appState.horizonDays}</span><span class="chip-value">${riskVal.toFixed(1)}</span>`;
   document.getElementById('chip-risk').className = `chip ${riskColor}`;
-  document.getElementById('chip-tail').innerHTML = `<span class="chip-label">P(SEV)</span><span class="chip-value">${fmtPct(tailVal)}</span>`;
+  document.getElementById('chip-tail').innerHTML = `<span class="chip-label">P(SEV) · day ${appState.horizonDays}</span><span class="chip-value">${fmtPct(tailVal)}</span>`;
   document.getElementById('chip-tail').className = `chip ${tailColor}`;
   document.getElementById('chip-net').innerHTML = `<span class="chip-label">Net/day</span><span class="chip-value">$${fmtMoney(netVal)}</span>`;
   document.getElementById('chip-net').className = `chip ${netColor}`;
@@ -171,7 +191,16 @@ function renderActiveTab() {
   const scenario = getScenario();
 
   if (tab === 'dashboard') {
-    renderDashboard(document.getElementById('tab-dashboard'), states, mc);
+    const pane = document.getElementById('tab-dashboard');
+    if (!pane.querySelector('#dash-metrics')) {
+      pane.innerHTML = '<div id="dash-explain"></div><div id="dash-metrics"></div>';
+    }
+    renderDashboard(pane.querySelector('#dash-metrics'), states, mc);
+    scheduleExplain();
+  } else if (tab === 'compare') {
+    renderCompareTab();
+  } else if (tab === 'tradeoffs') {
+    renderTradeoffsTab();
   } else if (tab === 'timeline') {
     renderTimeline(document.getElementById('tab-timeline'), states, mc, scenario, appState.selectedMetrics);
   } else if (tab === 'sensitivity') {
@@ -179,6 +208,108 @@ function renderActiveTab() {
   } else if (tab === 'model') {
     renderModel(document.getElementById('tab-model'));
   }
+}
+
+// ── Explain / Compare / Trade-offs ──────────────────────────────────
+let explainTimer = null;
+function scheduleExplain() {
+  // Shapley attribution runs up to a few hundred simulations: debounce while sliders move
+  clearTimeout(explainTimer);
+  const target = document.getElementById('dash-explain');
+  if (target && !target.innerHTML) target.innerHTML = '<p class="empty">Working out what moved the risk…</p>';
+  explainTimer = setTimeout(() => {
+    const el = document.getElementById('dash-explain');
+    if (!el || appState.activeTab !== 'dashboard') return;
+    const ex = explainRisk({ scenario: getScenario(), bundle: appState.bundle, horizonDays: appState.horizonDays });
+    renderExplain(el, ex, appState.horizonDays);
+  }, 180);
+}
+
+function slotResult(slot) {
+  const bundle = appState.bundles[slot];
+  const states = runSimulation({ scenario: getScenario(), bundle, horizonDays: appState.horizonDays });
+  return { bundle, states, summary: summarize(states, bundle) };
+}
+
+function renderCompareTab() {
+  renderCompare(document.getElementById('tab-compare'), {
+    A: slotResult('A'), B: slotResult('B'),
+    activeSlot: appState.activeSlot,
+    horizon: appState.horizonDays,
+    onAction: (act, slot) => {
+      if (act === 'copy') appState.bundles.B = appState.bundles.A.map(b => ({ ...b }));
+      if (act === 'swap') [appState.bundles.A, appState.bundles.B] = [appState.bundles.B, appState.bundles.A];
+      if (act === 'edit') { setActiveSlot(slot); return; }
+      bundleChanged();
+    }
+  });
+}
+
+let tradeoffCache = { key: '', points: null };
+function renderTradeoffsTab() {
+  const scenario = getScenario();
+  const key = scenario.id + '|' + appState.horizonDays;
+  if (tradeoffCache.key !== key) {
+    // presets + every single decision: only depends on scenario and horizon
+    tradeoffCache = {
+      key,
+      points: tradeoffPoints({
+        scenario, horizonDays: appState.horizonDays, decisions: DECISIONS,
+        extra: PRESETS.map(p => ({ label: p.name, kind: 'preset', bundle: resolveBundle(p, DECISIONS) }))
+      })
+    };
+  }
+  const slotPoint = slot => {
+    const { summary, bundle } = slotResult(slot);
+    return { label: 'Bundle ' + slot, kind: slot, bundle, avgRisk: summary.avgRisk, totalNet: summary.totalNet };
+  };
+  const pts = [...tradeoffCache.points.map(p => ({ ...p })), slotPoint('A')];
+  if (appState.bundles.B.length) pts.push(slotPoint('B'));
+  // A or B identical to a preset (e.g. just loaded): one dot, one combined label
+  for (const slotPt of pts.filter(p => p.kind === 'A' || p.kind === 'B')) {
+    const twins = pts.filter(q => q !== slotPt && Math.abs(q.avgRisk - slotPt.avgRisk) < 1e-6 && Math.abs(q.totalNet - slotPt.totalNet) < 0.5);
+    for (const t of twins) t.hideLabel = true;
+    const named = twins.find(t => t.kind === 'preset' || t.kind === 'single');
+    if (named) slotPt.displayLabel = `${slotPt.label} · ${named.label}`;
+  }
+  // frontier is recomputed with A/B included, so a good custom bundle shows up as efficient
+  for (const p of pts) p.onFrontier = !pts.some(q => q !== p && q.avgRisk <= p.avgRisk && q.totalNet >= p.totalNet && (q.avgRisk < p.avgRisk || q.totalNet > p.totalNet));
+  renderTradeoffs(document.getElementById('tab-tradeoffs'), {
+    points: pts, horizon: appState.horizonDays,
+    onLoad: (p, slot) => {
+      appState.bundles[slot] = p.bundle.map(b => ({ ...b }));
+      if (appState.activeSlot !== slot) setActiveSlot(slot); else bundleChanged();
+    }
+  });
+}
+
+// Any change to a bundle: old Monte Carlo bands no longer describe it.
+function bundleChanged() {
+  appState.mcResults = null;
+  document.getElementById('mc-status').textContent = '—';
+  document.getElementById('mc-progress').style.display = 'none';
+  renderDecisionLibrary();
+  renderBundle();
+  runDeterministicSim();
+}
+
+function setActiveSlot(slot) {
+  appState.activeSlot = slot;
+  document.querySelectorAll('.slot-btn').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.slot === slot)));
+  bundleChanged();
+}
+
+function loadPreset(id) {
+  const p = PRESETS.find(x => x.id === id);
+  if (!p) return;
+  appState.bundle = resolveBundle(p, DECISIONS);
+  bundleChanged();
+}
+
+function renderIntro() {
+  const el = document.getElementById('intro');
+  if (appState.introDismissed) { el.hidden = true; return; }
+  el.hidden = false;
 }
 
 // ── Decision Bundle UI ───────────────────────────────────────────────
@@ -217,15 +348,23 @@ function toggleDecision(id) {
   } else {
     appState.bundle.push({ decision, intensity: 0.5 });
   }
-  renderDecisionLibrary();
-  renderBundle();
-  runDeterministicSim();
+  bundleChanged();
 }
 
 function renderBundle() {
   const bundleEl = document.getElementById('active-bundle');
   if (appState.bundle.length === 0) {
-    bundleEl.innerHTML = '<p class="empty-bundle">No decisions active. Add from the library.</p>';
+    const presets = presetsFor(appState.scenarioId);
+    bundleEl.innerHTML = `
+      <div class="bundle-empty">
+        <p class="empty-bundle">Bundle ${appState.activeSlot} is empty. Start from a ready-made bundle for <b>${esc(getScenario().name)}</b>, or add decisions with <b>+</b> above.</p>
+        ${presets.map(p => `
+          <button class="preset-card" data-preset="${p.id}">
+            <span class="preset-name">${esc(p.name)}</span>
+            <span class="preset-blurb">${esc(p.blurb)}</span>
+          </button>`).join('')}
+      </div>`;
+    bundleEl.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => loadPreset(b.dataset.preset)));
     return;
   }
 
@@ -266,6 +405,9 @@ function renderBundle() {
       if (item) {
         item.intensity = parseFloat(e.target.value);
         e.target.nextElementSibling.textContent = (item.intensity * 100).toFixed(0) + '%';
+        e.target.closest('.bundle-item').querySelector('.badge-cost').textContent =
+          '$' + Math.round(item.decision.cost.amountPerDay * item.intensity) + '/day';
+        appState.mcResults = null;
         runDeterministicSim();
       }
     });
@@ -279,7 +421,7 @@ function exportConfig() {
     horizonDays: appState.horizonDays,
     mcRuns: appState.mcRuns,
     selectedMetrics: appState.selectedMetrics,
-    bundle: appState.bundle.map(b => ({ decisionId: b.decision.id, intensity: b.intensity }))
+    bundles: { A: toStored(appState.bundles.A), B: toStored(appState.bundles.B) }
   };
   const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -297,12 +439,14 @@ function importConfig(file) {
       if (data.horizonDays) appState.horizonDays = data.horizonDays;
       if (data.mcRuns) appState.mcRuns = data.mcRuns;
       if (data.selectedMetrics) appState.selectedMetrics = data.selectedMetrics;
-      if (data.bundle) {
-        appState.bundle = data.bundle.map(b => {
-          const decision = DECISIONS.find(d => d.id === b.decisionId);
-          return decision ? { decision, intensity: b.intensity } : null;
-        }).filter(Boolean);
+      if (data.bundles) {
+        appState.bundles.A = fromStored(data.bundles.A);
+        appState.bundles.B = fromStored(data.bundles.B);
+      } else if (data.bundle) {
+        appState.bundles.A = fromStored(data.bundle);
+        appState.bundles.B = [];
       }
+      appState.mcResults = null;
       document.getElementById('scenario-select').value = appState.scenarioId;
       document.getElementById('horizon-select').value = appState.horizonDays;
       document.getElementById('mc-runs-input').value = appState.mcRuns;
@@ -333,6 +477,7 @@ function init() {
   scenarioSelect.addEventListener('change', e => {
     appState.scenarioId = e.target.value;
     appState.mcResults = null;
+    renderBundle();
     runDeterministicSim();
   });
 
@@ -363,6 +508,22 @@ function init() {
     else renderActiveTab();
   });
 
+  document.querySelectorAll('.slot-btn').forEach(b => {
+    b.setAttribute('aria-pressed', String(b.dataset.slot === appState.activeSlot));
+    b.addEventListener('click', () => setActiveSlot(b.dataset.slot));
+  });
+  document.getElementById('intro-close').addEventListener('click', () => {
+    appState.introDismissed = true; saveToStorage(); renderIntro();
+  });
+  document.querySelectorAll('[data-intro-preset]').forEach(b => b.addEventListener('click', () => {
+    const p = presetsFor(appState.scenarioId)[0];
+    if (p) loadPreset(p.id);
+  }));
+  document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => {
+    document.querySelector(`.tab-btn[data-tab="${b.dataset.goto}"]`).click();
+  }));
+
+  renderIntro();
   renderDecisionLibrary();
   renderBundle();
   runDeterministicSim();
